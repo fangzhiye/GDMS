@@ -1,27 +1,40 @@
 <template>
-	<div class="main-content" v-if="gotResult">
+  <div class="result-container" v-if="gotResult">
+  <div class="sub-padding">
+
     <div class="teacher-topics-status">
       <md-layout md-gutter="16">
-        <md-layout class="single-card" md-flex-small="100" md-flex-medium="50" v-for="(result,index) in resultDataInView">
-          <mu-paper :zDepth="2">
+        <md-layout class="single-card" md-flex-small="100" md-flex-medium="50" v-for="(result,index) in resultData">
+          <mu-paper>
             <div class="result-title">
               {{result._id}}. {{result.title}}
             </div>
             <div class="a-student" v-for="(student,sid) in  result.finalstudents">
-            <div class="student-details">
-            	<mu-avatar :size="48" :backgroundColor="student.gender=='女'?'#ff4081':'#26c6da'">{{student.name}}</mu-avatar> - {{student._id}}</span>
-            <div class="student-contact">
-            	 	TEL:{{student.tel}}<br/>
-            		EMAIL:{{student.email}}<br/>
-            		QQ:{{student.qq}}<br/>
-            		WECHAT:{{student.wechat}}
-            </div>
-            </div>
+              <div class="student-details">
+                <mu-avatar :size="32" :icon="student.gender==='女'?'face':'mood'" :color="student.gender==='女'?'pink500':'blue500'" backgroundColor="#dedede"></mu-avatar><div class="student-name">{{student.name}} - {{student._id}}</div>
+                <mu-divider/>
+                <div class="student-contact">
+                  <div class="chip">
+                    <mu-icon value="call" :size="18" /> {{student.tel}}
+                  </div>
+                  <div class="chip">
+                    <mu-icon value="mail" :size="18" />
+                    <a :href="'mailto:'+student.email">{{student.email}}</a>
+                  </div>
+                  <div class="chip">
+                    <img src="../../assets/icon/qq.svg" alt="QQ" /> {{student.qq}}
+                  </div>
+                  <div class="chip">
+                    <img src="../../assets/icon/wechat.svg" alt="WECHAT" /> {{student.wechat}}
+                  </div>
+                </div>
+              </div>
             </div>
           </mu-paper>
         </md-layout>
       </md-layout>
     </div>
+  </div>
   </div>
   <div class="main-content" v-else>
     <div class="empty-card-title" :class="{'hide':open}">
@@ -31,14 +44,15 @@
   </div>
 </template>
 
+
 <script>
 
 import { mapState ,mapActions,mapMutations} from 'vuex'
+
 	export default{
 		data(){
 			return {
-				gotResult:true,
-				resultDataInView:[]
+				gotResult:true
 			}
 		},
 		computed:{
@@ -49,16 +63,9 @@ import { mapState ,mapActions,mapMutations} from 'vuex'
 			//一键导出excel表格功能实现
 		},
 		mounted(){
-
 	   if(this.$root.getCookie('user')){
        var user=this.$root.getCookie('user')
         this.tchSelectionResult({teacherId:user})
-				.then(()=>{
-					this.resultDataInView=this.resultData
-				})
-				.catch(error=>{
-					console.log(error)
-				})
      }else{
        this.$router.push('/')
      }
@@ -70,73 +77,77 @@ import { mapState ,mapActions,mapMutations} from 'vuex'
 <style lang="sass" rel="stylesheet/scss">
 @import '../../style/variables.scss';
 
+
 .teacher-topics-status
 {
     margin: 8px 0;
-
-    transition: all .4s cubic-bezier(.2,.2,.4,1);
     .mu-paper
     {
         transition: $material-enter;
-        &:hover
-        {
-            -webkit-box-shadow: $material-shadow-9dp;
-               -moz-box-shadow: $material-shadow-9dp;
-                    box-shadow: $material-shadow-9dp;
-        }
+
+        background-color: #f6f6f6;
     }
     .single-card
     {
         margin: 8px 0;
+
+        flex: 0 1 10%;
         .mu-paper
         {
             width: 100%;
         }
         .result-title
         {
-            position: relative;
-
             padding: 8px;
 
             color: #fff;
             border-top-left-radius: 2px;
             border-top-right-radius: 2px;
-            background-color: #2196f3 !important;
+            background-color: #2196f3 ;
         }
         .a-student
         {
-            position: relative;
-
-            width: 184px;
-            height: 64px;
+            width: 256px;
             margin: 12px;
 
-            transition: $material-enter;
-            border-radius: 56px;
+            border-radius: 24px;
+            background-color: #fff;
             -webkit-box-shadow: $material-shadow-1dp;
                -moz-box-shadow: $material-shadow-1dp;
                     box-shadow: $material-shadow-1dp;
-            &:hover
-            {
-                .student-contact
-                {
-                    display: block !important;
-                }
-            }
             .student-details
             {
                 font-size: 16px;
 
                 overflow: hidden;
 
+                height: 200px;
                 padding: 8px;
-                .mu-avatar
+
+                cursor: default;
+                transition: $material-enter;
+                .student-name
                 {
-                    font-size: 14px !important;
+                    display: inline-block;
+
+                    height: 32px;
+                    margin-left: 18px;
+
+                    vertical-align: middle;
                 }
-                .student-contact
+                .chip
                 {
-                    display: none;
+                    margin: 2px;
+                }
+                a
+                {
+                    color: #000;
+                    &:hover
+                    {
+                        text-decoration: none;
+
+                        color: #888;
+                    }
                 }
             }
         }

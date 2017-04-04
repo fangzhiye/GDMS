@@ -46,7 +46,6 @@ export default {
     return axios.post('/login', payload)
       .then((response) => {
         //response就是res.send发送过来的Object或status
-        console.log(response)
         switch (response.data.state) {
           case 0:
             {
@@ -83,11 +82,10 @@ export default {
   //学生获取题目
   stuGetTopics: ({ commit }) => {
     //设置进度条开始
-    const start = beginLoading(commit)
+    const start = beginLoading({commit})
     return axios.get('/student/stuGetTopics')
-
     .then(response => {
-        stopLoading(commit, start)
+        stopLoading({commit}, start)
           //提交
         commit('SET_STU_TOPICS', response.data)
       })
@@ -130,9 +128,16 @@ export default {
   },
   //学生给老师评价 POST评分
   stuEvaluationToTch: ({ commit }, payload) => {
-    //
+    return axios.post('/student/stuEvaluationToTch',payload)
+      .then(response=>{
+        showSnackbar({ commit }, '分数提交成功')
+      })
+      .catch(error=>{
+        showSnackbar({ commit }, '出了点小问题，再试试')
+        return Promise.reject(error)
+      })
   },
-  //学生提交联系信息
+  //学生修改联系信息
   stuContactInfo: ({ commit }, payload) => {
 
   },
@@ -165,14 +170,17 @@ export default {
   tchGetTopics: ({ commit }, payload) => {
     return axios.post('/teacher/tchGetTopics', payload)
       .then(response => {
-        console.log(response)
+        console.log(response.data)
         commit('SET_TCH_TOPIC_CARD', response.data)
+      })
+      .catch((error) => {
+        this.showSnackbar('载入课题出了点问题，再刷新试试')
+        return Promise.reject(error)
       })
   },
   tchGetCreatedTopics: ({ commit }, payload) => {
     return axios.post('/teacher/tchGetCreatedTopics', payload)
       .then(response => {
-        console.log(response)
         commit('TCH_GET_CREATED_TOPICS', response.data)
       })
   },
@@ -180,7 +188,6 @@ export default {
   tchDeleteTopic: ({ commit }, payload) => {
     return axios.post('/teacher/tchDeleteTopic', payload)
       .then(response => {
-        console.log(response)
       })
       .catch((error) => {
         this.showSnackbar('出了点问题，再试试')
@@ -195,22 +202,30 @@ export default {
         //提交成功 得到available 
         showSnackbar({ commit }, '确认学生选题成功')
       })
+      .catch((error) => {
+        showSnackbar({ commit }, '出了点问题，再试试')
+        return Promise.reject(error)
+      })
   },
   tchSelectionResult: ({ commit }, payload) => {
     return axios.post('/teacher/tchSelectionResult', payload)
       .then(response => {
+        console.log(response.data);
         commit('SET_TCH_SELECTION_RESULT', response.data)
       })
   },
   //提交学生评价
   tchEvaluationToStu: ({ commit }, payload) => {
-
+    return axios.post('/teacher/tchEvaluationToStu')
   }
   ,
   tchGrouping:({commit} , payload)=>{
     return axios.post('/teacher/tchGrouping',payload)
       .then(response=>{
         commit('SET_GROUPING', response.data)
+      })
+      .catch(error=>{
+        return Promise.reject(error)
       })
   }
 

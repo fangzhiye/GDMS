@@ -1,26 +1,29 @@
 <template>
 	<div class="container">
     <wyvonj-header :class="{'nav-hide': !openDrawer}" :userName="userName" :notifyContent="notifyContent"></wyvonj-header>
-    <mu-drawer @hide="handleHide" @close="handleClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
+    <mu-drawer @close="handleClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
         <div class="console-panel">
-            <div class="logo">
-        		<img src="../../assets/img/gd_logo.png" alt="GDMS by WyvonJ">
-            	<p class="jnudm">JNUDM</p>
-        	</div>
-            <mu-menu :autoWidth="false" :maxHeight="320" :width=256 :desktop="true" :value="menuValue" @change="menuChange">
+        <div class="logo">
+          <img src="../../assets/img/gd_logo.png" alt="GDMS">
+          <p class="jnudm">
+            JNUDM
+          </p>
+        </div>
+            <mu-menu :desktop="true" :value="menuValue" @change="menuChange">
                 <mu-menu-item title="创建选题" value="1" leftIcon="playlist_add" @click="createTopics" />
                 <mu-menu-item title="选择学生" value="2" leftIcon="check_circle" @click="confirmTopics" />
                 <mu-menu-item title="选题结果" value="3" leftIcon="local_library" @click="confirmResult" />
-                <mu-menu-item title="学生评价" value="4" leftIcon="star_half" @click="studentEvaluation" />
-                <mu-menu-item title="联系信息" value="5" leftIcon="contact_phone" @click="contact" />
-                <mu-menu-item title="帐号管理" value="6" leftIcon="settings" @click="account" />
+          			<mu-menu-item title="答辩分组" value="4" leftIcon="group" @click="grouping" />
+                <mu-menu-item title="学生评价" value="5" leftIcon="star_half" @click="studentEvaluation" />
+                <mu-menu-item title="联系信息" value="6" leftIcon="contact_phone" @click="contact" />
+                <mu-menu-item title="帐号管理" value="7" leftIcon="settings" @click="account" />
             </mu-menu>
         </div>
         <mu-divider/>
     </mu-drawer>
 
-    <transition name="main-transition" appear>
-            <router-view :class="{'nav-hide': !openDrawer}"></router-view>
+     <transition name="main-transition" appear>
+      <router-view :class="{'nav-hide': !openDrawer}" class="main-content"></router-view>
     </transition>
     <wyvonj-footer></wyvonj-footer>
 </div>
@@ -31,16 +34,14 @@
 import {mapState,mapMutations} from 'vuex'
 import WyvonjHeader from '../utils/WyvonjHeader.vue'
 import WyvonjFooter from '../utils/WyvonjFooter.vue'
-var isDesktop = () => window.innerWidth > 900
+var isDesktop = () => window.innerWidth > 993
 const desktop=isDesktop()
 	export default {
 		data(){
-			
 			return{
 				openDrawer:true,
 				docked:desktop,
 				desktop:desktop,
-				dialog:false,
 				firstEdit:true,
 				menuValue:1,
 				userName:'派大星',
@@ -57,6 +58,9 @@ const desktop=isDesktop()
 			confirmResult(){
 				this.$router.push('/teacher/selectionresult')
 			},
+       grouping() {
+           this.$router.push('/teacher/grouping')
+       },
 			studentEvaluation(){
 				this.$router.push('/teacher/evaluation')
 			},
@@ -68,7 +72,9 @@ const desktop=isDesktop()
 			},
 			menuChange(val){
 				this.menuValue=val
-				this.$emit('change', val)
+				if(!isDesktop())
+        	this.handleClose()
+
 			},
 			changeNav () {
      		const desktop = isDesktop()
@@ -85,18 +91,9 @@ const desktop=isDesktop()
 			handleClose () {
       	this.openDrawer=!this.openDrawer
     	},
-    	close () {
-      	this.dialog = false
-    	},
-    	handleHide () {
-    	},
     	toggleNav(){
           this.openDrawer=!this.openDrawer
-
     	}
-		},
-		computed:{
-
 		},
 		components:{
 			WyvonjHeader,
@@ -117,7 +114,3 @@ const desktop=isDesktop()
 		}
 
 </script>
-
-<style lang="sass" rel="stylesheet/scss">
-
-</style>

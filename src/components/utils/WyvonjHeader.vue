@@ -1,7 +1,15 @@
 <template>
-  <header class="nav-bar" :class="{'focused':searchFocus}">
+  <header class="nav-bar">
+    <div class="logo">
+      <img src="../../assets/img/gd_logo.png" alt="GDMS">
+      <p class="jnudm">JNUDM</p>
+    </div>
     <mu-icon-button icon="menu" @click="toggleNav"></mu-icon-button>
-    <mu-text-field hintText="SEARCH" v-if="showSearchInput" type="text" icon="search" @focus="focus" @blur="blur"/>
+    <div class="search-bar-wrapper" v-if="showSearchInput" :class="{'focused':searchFocus}">
+      <mu-icon class="search-icon" value="search"/>
+      <input type="text" @focus="focus" @blur="blur"   placeholder="Search" class="search-input" name="search">
+    </div>
+    
     <div class="noti-info">
       <mu-icon-button tooltip="通知" class="notify-button" ref="notify" icon="notifications" @click="showNotification" />
       <mu-icon-button tooltip="注销" class="logout-button" ref="button" icon="exit_to_app" @click="logout" />
@@ -11,7 +19,6 @@
           <mu-card-header :title="userName">
             <mu-avatar icon="assignment_turned_in" />
           </mu-card-header>
-          
           <mu-card-text>
             {{notifyContent}}
           </mu-card-text>
@@ -84,58 +91,78 @@ export default {
 
 </script>
 
-<style lang="sass" rel="stylesheet/scss" scoped>
+<style lang="sass" rel="stylesheet/scss">
 @import "../../style/variables";
-
 .nav-bar
 {
     position: fixed;
-    z-index: 5;
+    z-index: 201;
     top: 0;
     right: 0;
-    left: 188px;
+    left: 0;
 
     width: auto;
     height: 64px;
 
-    -webkit-box-shadow: $material-shadow-1dp;
-       -moz-box-shadow: $material-shadow-1dp;
-            box-shadow: $material-shadow-1dp;
-    &.focused{
-      -webkit-box-shadow: $material-shadow-5dp;
-       -moz-box-shadow: $material-shadow-5dp;
-            box-shadow: $material-shadow-5dp;
-    }
     transition: $material-enter;
-
-    background-color: #fafafa;
-    &.nav-hide
-    {
-        left: 0;
-    }
-    >.mu-icon-button{
-      position: absolute;
-      left: 8px;
-      top: 8px;
-    }
-    .notify-button{
-      position: absolute;
-      right: -32px;
-      top: 8px;
-    }
-    .logout-button{
-      position: absolute;
-      right: -80px;
-      top: 8px;
-    }
-    .mu-text-field
+    color: #fff;
+    background-color: #3f51b5;
+    > .mu-icon-button
     {
         position: absolute;
-        top: 10px;
-        left: 60px;
-
-        width: 60%;
+        top: 8px;
+        left: 188px;
     }
+    .notify-button
+    {
+        position: absolute;
+        top: 8px;
+        right: -32px;
+    }
+    .logout-button
+    {
+        position: absolute;
+        top: 8px;
+        right: -80px;
+    }
+    .search-bar-wrapper{
+      position: absolute;
+      border-radius: 3px;
+      height: 48px;
+      cursor: text;
+      white-space: nowrap;
+      padding-left: 48px;
+      background-color: #5c6bc0;
+      left: 256px;
+      width: 40%;
+      top: 8px;
+
+      transition: $material-enter;
+      &.focused{
+        width: 60%;
+      }
+      .search-icon{
+
+      position: absolute;
+      top: 0;
+      left: 0;
+      margin: 12px;
+    }
+    .search-input
+    {
+      position: relative;
+      top: 8px;
+      border: 0;
+      color: #fff;
+      font-size: 20px;
+      outline: none;
+      background-color: transparent;
+      width: 90%;
+      height: 32px;
+
+    }
+    }
+    
     .noti-info
     {
         position: absolute;
@@ -153,23 +180,8 @@ export default {
         text-align: left;
     }
 }
-@media (max-width: 1280px){
-  .nav-bar{
-    height: 56px;
-
-    >.mu-icon-button{
-      top: 4px;
-    }
-    .notify-button{
-      top: 4px;
-    }
-    .logout-button{
-      top: 4px;
-    }
-    .mu-text-field
-    {
-        top: 6px;
-    }
-  }
+@media (max-width: 993px){
+  
 }
+
 </style>

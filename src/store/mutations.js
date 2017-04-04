@@ -34,9 +34,12 @@ export default {
 	SET_TOPICS_IN_CART:(state,selectedInCart)=>{
 		state.selectedInCart=selectedInCart
 	},
-	//老师创建选题
 	TCH_GET_CREATED_TOPICS:(state,createdTopics)=>{
 		state.createdTopics=createdTopics
+	},
+	//老师创建选题
+	TCH_CREATE_TOPIC:(state,createdTopic)=>{
+		state.createdTopic=createdTopic
 	},
 	SET_TCH_TOPIC_CARD:(state,tchTopics)=>{
 		state.cardData=tchTopics
