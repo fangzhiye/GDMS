@@ -1,8 +1,7 @@
 <template>
   <div class="evaluation-card">
-  <div class="sub-padding">
-
-    <div class="teacher-info">
+  <div class="teacher-wrapper">
+       <div class="teacher-info">
       <mu-avatar :icon="emoji" :size="44" :iconSize="36" />
       <div class="name">
         {{name}}
@@ -11,9 +10,13 @@
     </div>
     <div class="grade-content">
       <mu-slider v-model="grade" :step="1" @change="faceChange" class="grade-slider" />
-      <mu-flat-button label="提交分数" icon="star" @click="commitGrade" primary/>
+      <button @click="commitGrade" class="grade-button">
+          <i class="material-icons star-icon">star</i>
+          提交分数
+      </button>
     </div>
-    </div>
+  </div>
+   
   </div>
 </template>
 
@@ -25,7 +28,7 @@ import {mapActions} from 'vuex'
 			return {
 				grade:60,
 				emoji:'sentiment_neutral',
-				name:'张三'
+				name:'导师'
 			}
 		},
 		methods:{
@@ -44,7 +47,7 @@ import {mapActions} from 'vuex'
 			},
 			commitGrade(){
 				this.stuEvaluationToTch({
-					studentId:this.$root.getCookie('user'),
+					studentId:_c.getCookie('user'),
 					grade:this.grade
 				})
 			},
@@ -57,17 +60,10 @@ import {mapActions} from 'vuex'
 @import '../../style/variables.scss';
 .evaluation-card
 {
-    transition: $material-enter;
-
-    border-radius: 3px;
-    -webkit-box-shadow: $material-shadow-1dp;
-       -moz-box-shadow: $material-shadow-1dp;
-            box-shadow: $material-shadow-1dp;
-    &:hover
-    {
-        -webkit-box-shadow: $material-shadow-6dp;
-           -moz-box-shadow: $material-shadow-6dp;
-                box-shadow: $material-shadow-6dp;
+    .teacher-wrapper{
+        border: 1px $indigo400 solid;
+        border-radius: 3px;
+        width: 480px;
     }
     .teacher-info
     {
@@ -75,7 +71,6 @@ import {mapActions} from 'vuex'
 
         padding: 8px 16px;
         width: 480px;
-        background-color: #dedede;
         .name
         {
             font-size: 24px;
@@ -102,12 +97,25 @@ import {mapActions} from 'vuex'
         {
             margin-top: 16px;
         }
-        .mu-flat-button
-        {
-            margin-top: 16px;
-
-            color: #fff;
-            background-color: #03a9f4;
+        .grade-button{
+            outline: none;
+            background: transparent;
+            border: 1px #f44336 solid;
+            color: #f44336;
+            border-radius: 2px;
+            transition: $material-enter;
+            cursor: pointer;
+            padding: 0px 8px 8px 8px;
+            font-size: 16px;
+            vertical-align: text-top;
+            &:hover{
+                background-color: #f44336;
+                color: white;
+            }
+            .star-icon{
+                position: relative;
+                top: 4px;
+            }
         }
     }
 }

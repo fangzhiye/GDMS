@@ -1,10 +1,9 @@
 <template>
   <div class="result-container" v-if="gotResult">
-  <div class="sub-padding">
 
     <div class="teacher-topics-status">
       <md-layout md-gutter="16">
-        <md-layout class="single-card" md-flex-small="100" md-flex-medium="50" v-for="(result,index) in resultData">
+        <md-layout class="single-card" md-flex-small="100" md-flex-medium="50" v-for="(result,index) in _tch_StudentConfirmed">
           <mu-paper>
             <div class="result-title">
               {{result._id}}. {{result.title}}
@@ -35,7 +34,6 @@
       </md-layout>
     </div>
   </div>
-  </div>
   <div class="main-content" v-else>
     <div class="empty-card-title" :class="{'hide':open}">
       这里空空如也！
@@ -46,32 +44,28 @@
 
 
 <script>
+import { mapState, mapActions } from 'vuex'
+export default {
+  data() {
+      return {
+        gotResult: true,
+      }
+    },
+    computed: mapState(['_tch_StudentConfirmed']),
+    methods: {
+      ...mapActions(['tchSelectionResult'])
+      //一键导出excel表格功能实现
+    },
+    mounted() {
+      let tchId = _c.getCookie('user')
+      if (tchId) {
+        this.tchSelectionResult({ teacherId: tchId })
+      } else {
+        //this.$router.push('/')
+      }
+    }
+}
 
-import { mapState ,mapActions,mapMutations} from 'vuex'
-
-	export default{
-		data(){
-			return {
-				gotResult:true
-			}
-		},
-		computed:{
-			...mapState(['user','resultData'])
-		},
-		methods:{
-			...mapActions(['tchSelectionResult'])
-			//一键导出excel表格功能实现
-		},
-		mounted(){
-	   if(this.$root.getCookie('user')){
-       var user=this.$root.getCookie('user')
-        this.tchSelectionResult({teacherId:user})
-     }else{
-       this.$router.push('/')
-     }
-			
-		}
-	}
 </script>
 
 <style lang="sass" rel="stylesheet/scss">
@@ -80,21 +74,13 @@ import { mapState ,mapActions,mapMutations} from 'vuex'
 
 .teacher-topics-status
 {
+        display: flex;
     margin: 8px 0;
-    .mu-paper
-    {
-        transition: $material-enter;
-
-        background-color: #f6f6f6;
-    }
     .single-card
     {
         margin: 8px 0;
-
-        flex: 0 1 10%;
-        .mu-paper
-        {
-            width: 100%;
+        .paper{
+          padding: 0;
         }
         .result-title
         {
@@ -103,25 +89,17 @@ import { mapState ,mapActions,mapMutations} from 'vuex'
             color: #fff;
             border-top-left-radius: 2px;
             border-top-right-radius: 2px;
-            background-color: #2196f3 ;
+            background-color: $indigo400 ;
         }
-        .a-student
-        {
-            width: 256px;
-            margin: 12px;
 
-            border-radius: 24px;
-            background-color: #fff;
-            -webkit-box-shadow: $material-shadow-1dp;
-               -moz-box-shadow: $material-shadow-1dp;
-                    box-shadow: $material-shadow-1dp;
+            .student-list{
+
+            }
             .student-details
             {
                 font-size: 16px;
 
                 overflow: hidden;
-
-                height: 200px;
                 padding: 8px;
 
                 cursor: default;
@@ -135,22 +113,13 @@ import { mapState ,mapActions,mapMutations} from 'vuex'
 
                     vertical-align: middle;
                 }
-                .chip
-                {
-                    margin: 2px;
+                .mail-link{
+                  color: rgba(0,0,0,.7) !important;
+                  &:hover{
+                    text-decoration: none !important;
+                  }
                 }
-                a
-                {
-                    color: #000;
-                    &:hover
-                    {
-                        text-decoration: none;
-
-                        color: #888;
-                    }
-                }
-            }
-        }
+              }
     }
 }
 

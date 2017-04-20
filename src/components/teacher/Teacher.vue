@@ -1,25 +1,44 @@
 <template>
-	<div class="container">
-    <wyvonj-header :class="{'nav-hide': !openDrawer}" :userName="userName" :notifyContent="notifyContent"></wyvonj-header>
+	<div class="main-container">
+    <wyvonj-header :class="{'nav-hide': !openDrawer}" :username="username" :notification="notification"></wyvonj-header>
     <mu-drawer @close="handleClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
         <div class="console-panel">
         <div class="logo">
           <img src="../../assets/img/gd_logo.png" alt="GDMS">
           <p class="jnudm">
-            JNUDM
+            Jnudm
           </p>
         </div>
-            <mu-menu :desktop="true" :value="menuValue" @change="menuChange">
-                <mu-menu-item title="创建选题" value="1" leftIcon="playlist_add" @click="createTopics" />
-                <mu-menu-item title="选择学生" value="2" leftIcon="check_circle" @click="confirmTopics" />
-                <mu-menu-item title="选题结果" value="3" leftIcon="local_library" @click="confirmResult" />
-          			<mu-menu-item title="答辩分组" value="4" leftIcon="group" @click="grouping" />
-                <mu-menu-item title="学生评价" value="5" leftIcon="star_half" @click="studentEvaluation" />
-                <mu-menu-item title="联系信息" value="6" leftIcon="contact_phone" @click="contact" />
-                <mu-menu-item title="帐号管理" value="7" leftIcon="settings" @click="account" />
-            </mu-menu>
+            <mu-list class="menu-border" @change="handleMenuChange" :value="menuValue">
+              <mu-list-item value="creation" title="创建选题">
+                <img src="../../assets/icon/playlist_add.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              <mu-list-item value="confirmation" title="选择学生">
+                <img src="../../assets/icon/check_circle_grey.svg" slot="left" alt="beenhere"/>
+              </mu-list-item>
+              <mu-list-item value="selectionresult" title="选题结果">
+                <img src="../../assets/icon/local_library.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              <mu-list-item value="grouping" title="答辩分组" toggleNested>
+                <img src="../../assets/icon/group.svg" slot="left" alt="description"/>
+                <mu-list-item value="midgroup" slot="nested" title="中期分组">
+                <img src="../../assets/icon/assessment.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              <mu-list-item value="finalgroup" slot="nested" title="终期分组">
+                <img src="../../assets/icon/assignment.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              </mu-list-item>
+              <mu-list-item value="evaluation" title="学生评价">
+                <img src="../../assets/icon/star_half.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              <mu-list-item value="contact" title="联系信息">
+                <img src="../../assets/icon/contact_phone.svg" slot="left" alt="description"/>
+              </mu-list-item>
+              <mu-list-item value="account" title="帐号管理">
+                <img src="../../assets/icon/settings.svg" slot="left" alt="description"/>
+              </mu-list-item>
+            </mu-list>
         </div>
-        <mu-divider/>
     </mu-drawer>
 
      <transition name="main-transition" appear>
@@ -39,47 +58,29 @@ const desktop=isDesktop()
 	export default {
 		data(){
 			return{
-				openDrawer:true,
+				openDrawer:desktop,
 				docked:desktop,
 				desktop:desktop,
-				firstEdit:true,
 				menuValue:1,
-				userName:'派大星',
-				notifyContent:'可以开始选择二批志愿了。'
+				username:'UNKNOW',
+				notification:''
 			}
 		},
+    computed:{
+      ...mapState(['user','notification'])
+    },
 		methods:{
-			createTopics(){
-				this.$router.push('/teacher/creation')
-			},
-			confirmTopics(){
-				this.$router.push('/teacher/confirmation')
-			},
-			confirmResult(){
-				this.$router.push('/teacher/selectionresult')
-			},
-       grouping() {
-           this.$router.push('/teacher/grouping')
-       },
-			studentEvaluation(){
-				this.$router.push('/teacher/evaluation')
-			},
-			contact(){
-				this.$router.push('/teacher/contact')
-			},
-			account(){
-				this.$router.push('/teacher/account')
-			},
-			menuChange(val){
-				this.menuValue=val
+			handleMenuChange(value){
+				this.menuValue=value
+        this.$router.push('/teacher/'+value)
 				if(!isDesktop())
         	this.handleClose()
-
 			},
 			changeNav () {
      		const desktop = isDesktop()
      		this.docked = desktop
-     		if (desktop === this.desktop) return
+     		if (desktop === this.desktop) 
+          return
      		if (!desktop && this.desktop && this.openDrawer) {
      		  this.openDrawer = false
      		}
@@ -99,18 +100,22 @@ const desktop=isDesktop()
 			WyvonjHeader,
 			WyvonjFooter
 		},
-		watch:{
-		},
 		destroyed(){
     	window.removeEventListener('resize', this.handleResize)
   	},
 		mounted(){
-			this.changeNav()
-			this.handleResize=()=>{
-				this.changeNav()
-			}
-			window.addEventListener('resize',this.handleResize)
+			if (_c.getCookie('usertype')!=1)
+       // return this.$router.push('/')
+     
+        this.username = _c.getCookie('username')
+        this.handleResize = () => {
+          this.changeNav()
+        }
+        window.addEventListener('resize', this.handleResize)
+    }
 		}
-		}
-
 </script>
+
+<style lang="sass" rel="stylesheet/scss">
+@import '../../style/variables.scss';
+</style>

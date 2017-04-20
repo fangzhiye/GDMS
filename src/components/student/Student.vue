@@ -1,130 +1,111 @@
 <template>
-  <div class="container">
-   <wyvonj-header :class="{'nav-hide': !openDrawer}" :showSearchInput="menuVal==1" :userName="userName" :notifyContent="notifyContent"></wyvonj-header>
-    <mu-drawer @close="handleClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
+  <div class="main-container">
+    <wyvonj-header :class="{'nav-hide': !openDrawer}" :showSearchInput="menuValue==='topics'" @search="search" :username="username" :notification="notification"></wyvonj-header>
+    <mu-drawer @close="handleDrawerClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
       <div class="console-panel">
         <div class="logo">
           <img src="../../assets/img/gd_logo.png" alt="GDMS">
           <p class="jnudm">
-            JNUDM
+            Jnudm
           </p>
         </div>
-        <mu-menu :autoWidth="false" :desktop="true" :value="menuVal" @change="handleMenuChange">
-          <mu-menu-item title="学生选题" value="1" leftIcon="description" @click="topics" />
-          <mu-menu-item title="选题结果" value="2" leftIcon="beenhere" @click="status" />
-          <mu-menu-item title="答辩分组" value="3" leftIcon="group" @click="grouping" />
-          <mu-menu-item title="教师评价" value="4" leftIcon="star_half" @click="evaluation" />
-          <mu-menu-item title="联系信息" value="5" leftIcon="contact_phone" @click="contact" />
-          <mu-menu-item title="帐号管理" value="6" leftIcon="settings" @click="account" />
-        </mu-menu>
+        <mu-list class="menu-border" @change="handleMenuChange" :value="menuValue">
+          <mu-list-item value="topics" title="学生选题">
+            <img src="../../assets/icon/description.svg" slot="left" alt="W" />
+          </mu-list-item>
+          <mu-list-item value="status" title="选题结果">
+            <img src="../../assets/icon/beenhere.svg" slot="left" alt="W" />
+          </mu-list-item>
+          <mu-list-item value="grouping" title="答辩分组">
+            <img src="../../assets/icon/group.svg" slot="left" alt="W" />
+          </mu-list-item>
+          <mu-list-item value="evaluation" title="教师评价">
+            <img src="../../assets/icon/star_half.svg" slot="left" alt="W" />
+          </mu-list-item>
+          <mu-list-item value="contact" title="联系信息">
+            <img src="../../assets/icon/contact_phone.svg" slot="left" alt="W" />
+          </mu-list-item>
+          <mu-list-item value="account" title="帐号管理">
+            <img src="../../assets/icon/settings.svg" slot="left" alt="W" />
+          </mu-list-item>
+        </mu-list>
       </div>
-      <mu-divider/>
     </mu-drawer>
-    
     <transition name="main-transition" appear>
       <router-view :class="{'nav-hide': !openDrawer}" class="main-content"></router-view>
     </transition>
-
     <wyvonj-footer></wyvonj-footer>
   </div>
 </template>
-
 
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex'
 import WyvonjHeader from '../utils/WyvonjHeader.vue'
 import WyvonjFooter from '../utils/WyvonjFooter.vue'
-var isDesktop = () => window.innerWidth > 993
+let isDesktop = () => window.innerWidth > 993
 export default {
-    data() {
-            const desktop = isDesktop()
-            return {
-                openDrawer: desktop,
-                docked: desktop,
-                desktop: desktop,
-                dialog: false,
-                menuVal: 1,
-                userName:'lalaland',
-                notifyContent:'可以查看选题情况了',
-                
-            }
-        },
-        methods: {
-            topics() {
-                this.$router.push('/student/topics')
-            },
-            status() {
-                this.$router.push('/student/status')
-            },
-            grouping() {
-                this.$router.push('/student/grouping')
-            },
-            evaluation() {
-                this.$router.push('/student/evaluation')
-            },
-            contact() {
-                this.$router.push('/student/contact')
-            },
-            account() {
-                this.$router.push('/student/account')
-            },
-            handleMenuChange(val) {
-             this.menuVal = val
-             if(!isDesktop())
-              this.handleClose()
-            },
-            changeNav() {
-                const desktop = isDesktop()
-                this.docked = desktop
-                if (desktop === this.desktop) return
-                if (!desktop && this.desktop && this.openDrawer) {
-                    this.openDrawer = false
-                }
-                if (desktop && !this.desktop && !this.openDrawer) {
-                    this.openDrawer = true
-                }
-                this.desktop = desktop
-            },
-            handleClose() {
-                this.openDrawer=!this.openDrawer
-            },
-            close() {
-                this.dialog = false
-            },
-     		//切换侧边栏
-            toggleNav() {
-            	this.openDrawer=!this.openDrawer
-            }
-        },
-        computed: {
-          ...mapState(['user','userInfo','notification'])
-        },
-        components: {
-            WyvonjHeader,
-            WyvonjFooter
-        },
-        watch: {},
-        destroyed() {
-            window.removeEventListener('resize', this.handleResize)
-        },
-        mounted() {
-           //if(!this.$root.getCookie('user')) 
-             //   return this.$router.push('/')
-            this.userName=this.userInfo.userName
-            this.notifyContent=this.notification
-            this.changeNav()
-            this.handleResize = () => {
-                this.changeNav()
-            }
-            window.addEventListener('resize', this.handleResize)
-            this.$emit('resize')
-
-        }
+  data() {
+      const desktop = isDesktop()
+      return {
+        openDrawer: desktop,
+        docked: desktop,
+        desktop: desktop,
+        menuValue: 'topics',
+        username: 'UNKNOWN',
+        notification: '',
+      }
+    },
+    methods: {
+      search(str) {
+        this.$children[2].searchStr = str
+      },
+      handleMenuChange(value) {
+        this.menuValue = value
+        this.$router.push('/student/' + value)
+        if (!isDesktop())
+          this.handleDrawerClose()
+      },
+      changeNav() {
+        const desktop = isDesktop()
+        this.docked = desktop
+        if (desktop === this.desktop)
+          return
+        if (!desktop && this.desktop && this.openDrawer)
+          this.openDrawer = false
+        if (desktop && !this.desktop && !this.openDrawer)
+          this.openDrawer = true
+        this.desktop = desktop
+      },
+      handleDrawerClose() {
+        this.openDrawer = !this.openDrawer
+      },
+      toggleNav() {
+        this.openDrawer = !this.openDrawer
+      }
+    },
+    computed: {
+      ...mapState(['user', 'notification'])
+    },
+    components: {
+      WyvonjHeader,
+      WyvonjFooter
+    },
+    destroyed() {
+      window.removeEventListener('resize', this.handleResize)
+    },
+    mounted() {
+      //if (_c.getCookie('usertype') != 0)
+      //return this.$router.push('/')
+      this.username = _c.getCookie('username')
+      this.handleResize = () => {
+        this.changeNav()
+      }
+      window.addEventListener('resize', this.handleResize)
+    }
 }
 
 </script>
 
 <style lang="sass" rel="stylesheet/scss">
-@import '../../style/variables.scss';
 
 </style>

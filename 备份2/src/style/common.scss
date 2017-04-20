@@ -1,0 +1,382 @@
+//定义公共样式
+[v-cloak]
+{
+    display: none;
+}
+
+*
+{
+    margin: 0;
+    padding: 0;
+}
+
+body
+{
+    font-family: $fontYahei;
+    font-weight: lighter;
+
+    width: 100%;
+    min-height: 99% !important;
+
+    letter-spacing: .05em;
+
+    color: $black2;
+    background-color: #f6f6f6 !important;
+
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+}
+
+body::-webkit-scrollbar
+{
+    width: 8px;
+    height: 16px;
+
+    background-color: #f5f5f5;
+}
+
+body::-webkit-scrollbar-track
+{
+    background-color: transparent;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+}
+
+body::-webkit-scrollbar-thumb
+{
+    transition: $material-enter;
+
+    border-radius: 10px;
+    background-color: #7f7f7f;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+}
+
+body::-webkit-scrollbar-thumb:hover
+{
+    background-color: #8f8f8f;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
+}
+
+html,
+body
+{
+    overflow: hidden !important;
+}
+
+a
+{
+    text-decoration: none;
+
+    color: #fff;
+}
+
+a:hover
+{
+    text-decoration: none;
+}
+
+ul,
+ol,
+li
+{
+    list-style: none;
+}
+
+#GDMS
+{
+    font-family: $fontYahei;
+    font-weight: lighter;
+
+    overflow: hidden;
+
+
+    text-align: center;
+
+    color: $black2;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+::selection
+{
+    color: $white;
+    background: $red;
+}
+
+::-moz-selection
+{
+    color: $white;
+    background: $red;
+}
+
+::-webkit-selection
+{
+    color: $white;
+    background: $red;
+}
+
+.md-tooltip
+{
+    font-weight: lighter;
+}
+
+.sub-padding
+{
+    padding: 8px 8px 16px 12px;
+}
+
+.no-selection
+{
+    -webkit-user-select:      none;
+       -moz-user-select: -moz-none;
+        -ms-user-select:      none;
+            user-select:      none;
+
+    -khtml-user-select: none;
+}
+
+.card
+{
+    transition: $material-enter;
+
+    border-radius: 3px;
+    -webkit-box-shadow: $material-shadow-1dp;
+       -moz-box-shadow: $material-shadow-1dp;
+            box-shadow: $material-shadow-1dp;
+}
+.paper{
+    transition: $material-enter;
+    padding: 8px;
+    background-color: white;
+    border-radius: 3px;
+    -webkit-box-shadow: $material-shadow-2dp;
+       -moz-box-shadow: $material-shadow-2dp;
+            box-shadow: $material-shadow-2dp;
+}
+.logo
+{
+    position: relative;
+
+    height: 64px;
+
+    background-color: $indigo;
+    img
+    {
+        position: absolute;
+        left: 16px;
+
+        display: inline;
+
+        max-width: 64px;
+    }
+    p.jnudm
+    {
+        font-family: $fontCenturyGothic;
+        font-size: 24px;
+        font-weight: lighter;
+        font-variant: small-caps;
+
+        position: absolute;
+        top: 22px;
+        left: 84px;
+
+        color: white;
+    }
+}
+
+.container
+{
+    overflow: auto;
+
+    height: 100%;
+
+    transition: $material-enter;
+    .sidebar-drawer
+    {
+        max-width: $sidebar-size;
+        .sidebar-menu
+        {
+            margin-top: 16px;
+            border-bottom: 1px rgba(0,0,0,.3) solid;
+            li
+            {
+                position: relative;
+
+                height: 32px;
+                margin: 3px 0;
+
+                cursor: pointer;
+                transition: $material-enter;
+                &.current-menu-item{
+                    color: $red;
+                }
+                img
+                {
+                    position: absolute;
+                    top: 4px;
+                    left: 48px;
+
+                    transition: inherit;
+                }
+                span
+                {
+                    font-size: 18px;
+
+                    position: absolute;
+                    top: 6px;
+                    right: 36px;
+                }
+                &:hover
+                {
+                    background-color: #dedede;
+                    img
+                    {
+                        left: 24px;
+                    }
+                }
+            }
+        }
+    }
+    .main-content
+    {
+        height: 100vh;
+        padding: 64px 0 18px 188px;
+        transition: $material-enter;
+        text-align: left;
+
+        background-color: #f6f6f6;
+        &.nav-hide
+        {
+            padding-left: 0;
+        }
+    }
+}
+
+.mu-th
+{
+    height: 36px !important;
+    .mu-th-wrapper
+    {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+@media (max-width: 993px)
+{
+    .main-content
+    {
+        padding-left: 0 !important;
+    }
+}
+
+//主内容区过渡动画
+.main-transition-enter-active
+{
+    transition: $material-enter;
+    transition-delay: .3s !important;
+    //元素进来时给大于等于离开动画的延迟
+    //就能避免两个元素同时在画内
+}
+
+//page进来的时候将其向上移动80px opacity设置为0
+//因为元素的opacity本来为1 所以会渐变化成1
+.main-transition-enter
+{
+    transform: translateY(-40px); //这个是执行函数
+
+    opacity: 0; //而这个是直接设置
+}
+
+.main-transition-leave-active
+{
+    transform: translateY(40px);
+
+    opacity: 0;
+}
+
+.chip
+{
+    font-size: 14px;
+
+    position: relative;
+
+    display: inline-block;
+
+    width: auto;
+    height: 32px;
+    margin: 6px;
+    padding: 2px 12px;
+
+    transition: $material-enter;
+
+    border: 1px #efefef solid;
+    border-radius: 16px;
+    background-color: #fff;
+    &:hover
+    {
+        -webkit-box-shadow: $material-shadow-1dp;
+           -moz-box-shadow: $material-shadow-1dp;
+                box-shadow: $material-shadow-1dp;
+    }
+    .mu-icon
+    {
+        position: relative;
+        top: 5px;
+    }
+    img
+    {
+        position: relative;
+        bottom: 2px;
+
+        height: 30px;
+    }
+}
+
+//如果要实现当前page切出时过渡？？？上面的leave-active设置无效？？？
+//还没有内容时的提示卡片样式
+.empty-card-title
+{
+    font-size: 24px;
+
+    position: relative;
+
+    overflow: hidden;
+
+    height: 48px;
+    padding: 16px;
+
+    transition: $material-enter;
+    text-align: center;
+
+    color: white;
+    border-radius: 2px;
+    background-color: $red;
+    -webkit-box-shadow: $material-shadow-1dp;
+       -moz-box-shadow: $material-shadow-1dp;
+            box-shadow: $material-shadow-1dp;
+    .intrgging
+    {
+        position: absolute;
+        bottom: 24px;
+        left: 40%;
+
+        display: none;
+    }
+    &:hover
+    {
+        cursor: pointer;
+
+        background-color: rgba(244, 67, 54, .8);
+    }
+    &.hide
+    {
+        height: 720px;
+
+        color: black;
+        background-color: white;
+        .intrgging
+        {
+            display: inline-block;
+        }
+    }
+}

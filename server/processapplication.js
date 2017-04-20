@@ -193,7 +193,7 @@ var manualProcessApplication = function(tchId,stuId,cb){//老师进行选择学�
 	  	console.log(mentor)
 	  } )
 }
-autoProcessFirstApplication()
+//autoProcessFirstApplication()
 //autoProcessSecondApplication()
 //autoProcessThirdApplication()
 //manualProcessFirstApplication()

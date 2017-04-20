@@ -1,12 +1,11 @@
 <template>
-  <div class="topic-status-container" v-if="gotTopic">
-    <div class="sub-padding">
-      <div class="student-status-card">
+  <div class="topic-status-container" v-if="isTopicConfirmed">
+      <div class="student-status-card card">
         <div class="teacher-info">
           <div class="teacher-name">
             <mu-avatar icon="face" backgroundColor="deepOrange500" :size="44" :iconSize="36" />
             <div class="name">
-              {{card.name}} 老师
+              {{_stu_TopicComfirmed.name}} 老师
             </div>
             <mu-avatar icon="check" backgroundColor="greenA700" :size="36" :iconSize="24" class="check-icon" />
           </div>
@@ -15,39 +14,45 @@
           </div>
           <div class="email chip">
             <mu-icon value="mail" :size="18" />
-            <a :href="'mailto:'+card.email">{{card.email}}</a>
+            <a :href="'mailto:'+_stu_TopicComfirmed.email">{{_stu_TopicComfirmed.email}}</a>
           </div>
           <div class="office chip">
-            <mu-icon value="desktop_mac" :size="18" /> {{card.office}}
+            <mu-icon value="desktop_mac" :size="18" /> {{_stu_TopicComfirmed.office}}
           </div>
           <div class="qq chip">
-            <img src="../../assets/icon/qq.svg" alt="QQ" /> {{card.qq}}
+            <img src="../../assets/icon/qq.svg" alt="QQ" /> {{_stu_TopicComfirmed.qq}}
           </div>
           <div class="wechat chip">
-            <img src="../../assets/icon/wechat.svg" alt="WECHAT" /> {{card.wechat}}
+            <img src="../../assets/icon/wechat.svg" alt="WECHAT" /> {{_stu_TopicComfirmed.wechat}}
           </div>
         </div>
         <div class="topic-wrapper">
           <div class="topic-info">
-            {{card._id}}
+            {{_stu_TopicComfirmed._id}}
           </div>
           <div class="topic-info">
-            {{card.title}}
+            {{_stu_TopicComfirmed.title}}
           </div>
           <div class="topic-info">
-            {{card.details}}
+            {{_stu_TopicComfirmed.details}}
           </div>
-          <span class="category-tag">{{card.category===0?'论文':'设计'}}
+          <span class="category-tag">{{_stu_TopicComfirmed.category===0?'论文':'设计'}}
         </span>
         </div>
       </div>
-    </div>
   </div>
   <div class="main-content" v-else>
-    <div class="empty-card-title" :class="{'hide':open}" @click="toggleEmpty">
-      这里空空如也！
-      <p class="intrgging">不是说了啥都没有么 (゜-゜)つロ。</p>
-    </div>
+      <ul class="selected-topic-list">
+        <li class="card"  v-for="(topic,index) in _stu_TopicInCart">
+          <div class="topic-title">
+            {{topic._id}}.{{topic.title}}
+            <span class="topic-level">{{index+1}}</span>
+          </div>
+          <div class="topic-details">
+            {{topic.details}}
+          </div>
+        </li>
+      </ul>
   </div>
 </template>
 
@@ -57,42 +62,38 @@ import {mapActions,mapState} from 'vuex'
   export default{
     data(){
       return {
-        open:false,
-        gotTopic:true,
-        card: {}
+        isTopicConfirmed:false
       }
     },
     computed:{
-      ...mapState(['affirmativeTopic']),
+      ...mapState(['_stu_TopicComfirmed','_stu_TopicInCart']),
       tele(){
         //手机号码转换
-        let tel=''
-        for (var i = 0; i < this.card.tel.length; i++) {
+        if (this.isTopicConfirmed) {
+          let tel=''
+        for (let i = 0; i < this._stu_TopicComfirmed.tel.length; i++) {
           if (i===3 || i===7) {
             tel+='-'
           }
-          tel+=this.card.tel[i]
+          tel+=this._stu_TopicComfirmed.tel[i]
         }
         return tel
+        }
       }
     },
     methods:{
-      toggleEmpty(){
-        this.open=!this.open
-      },
       ...mapActions(['stuSelectionResult'])
     },
     mounted(){
-      var user=this.$root.getCookie('user')
-      if (!user){
+      let id=_c.getCookie('user')
+      /*if (!id){
                 alert('超时未操作，请重新登录')
                 return this.$router.push('/')
-              }
-      this.stuSelectionResult({studentId:user})
+              }*/
+      this.stuSelectionResult({studentId: id})
         .then(()=>{
-        if (this.affirmativeTopic.length!=0) {
-          this.gotTopic=true
-          this.card=this.affirmativeTopic
+        if (this._stu_TopicComfirmed.name.length!=0) {
+          this.isTopicConfirmed=true
         }
       })
     }
@@ -107,14 +108,8 @@ import {mapActions,mapState} from 'vuex'
 
     position: relative;
 
-    max-width: 480px;
+    width: 320px;
 
-    transition: $material-enter;
-
-    border-radius: 3px;
-    -webkit-box-shadow: $material-shadow-1dp;
-       -moz-box-shadow: $material-shadow-1dp;
-            box-shadow: $material-shadow-1dp;
     &:hover
     {
         transform: translateY(-4px);
@@ -220,6 +215,48 @@ import {mapActions,mapState} from 'vuex'
             color: rgba(0, 0, 0, .4);
         }
     }
+}
+
+.selected-topic-list{
+  display: flex;
+  padding: 8px;
+  align-items: center;
+  justify-items:center;
+  li{
+    margin-right: 20px;
+    border-radius: 3px;
+    display: inline-block;
+    &:hover
+    {
+        transform: translateY(-4px);
+
+        -webkit-box-shadow: $material-shadow-6dp;
+           -moz-box-shadow: $material-shadow-6dp;
+                box-shadow: $material-shadow-6dp;
+    }
+    div{
+      padding: 8px;
+    }
+    .topic-title{
+        background-color: #3F51B5;
+        color: white;
+        position: relative;
+        font-size: 16px;
+      }
+      .topic-level{
+        position: absolute;
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        right: -16px;
+        bottom: -16px;
+        border-radius: 16px;
+        background-color: #f44336;
+        padding-top: 7px;
+        padding-left: 10px;
+        font-size: 20px;
+      }
+  }
 }
 
 </style>

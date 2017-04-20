@@ -10,22 +10,23 @@ var Schema = mongoose.Schema
 
 var adminsSchema = new Schema
 ({
-	_id: 			{type:  String, index: 1},//工号
-	account:        {type:  String, default:'admin'},
-	name: 			{type:  String },//姓名
-	password: 		{type:  String, required: true, default: 'admin'},//密码 required表示一开始存数据的时候就要有
-	tel: 			{type:  String}, //电话
-	email: 			{type:  String},//邮箱
-    notification:   {type: String},
-    eventstack:     [{type: Number}],//导师需要人工选择学生的题，如果stack里有题的话，就要取stack里题处理
+	_id: 			       {type:  String},//工号
+	account:         {type:  String, default:'admin'},
+	name: 			     {type:  String },//姓名
+	password: 		   {type:  String, required: true, default: 'admin'},//密码 required表示一开始存数据的时候就要有
+	tel: 			       {type:  String}, //电话
+	email: 			     {type:  String},//邮箱
+  notification:    {type: String},
+  eventstack:      [{type: Number}],//导师需要人工选择学生的题，如果stack里有题的话，就要取stack里题处理
+  isfirstlogin:    {type:Boolean, default:true}
 },{colletion: 'admins' })
 
 const admins = mongoose.model('admins',adminsSchema)
 
 var newAdMin = new admins({
-  _id: 10000,
+  _id: 'admin',
   account: 'admin',
-  password: 'admin',
+  password: '10086',
   name: '晏涛'
 })
 

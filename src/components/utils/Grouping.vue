@@ -1,20 +1,17 @@
 <template>
-  <div class="grouping-container" v-if="gotGroup">
-  <div class="sub-padding">
-
-    <div class="group-status-card">
-      
+  <div class="group-container">
+    <div class="group-status-card card">
       <div class="teacher-wrapper">
       <mu-avatar backgroundColor="red500" class="group-id-icon">{{groupId}}</mu-avatar>
-      <span class="card-title">TEACHER</span>
+      <span class="card-title">Teacher</span>
         <div class="chip" v-for="(teacher,index) in teachers">
           <mu-icon value="account_circle" color="greenA700" :size="18" /> {{teacher.name}}
         </div>
       </div>
       <div class="student-wrapper">
-      <span class="card-title">STUDENT</span>
+      <span class="card-title">Student</span>
       <div class="chip" v-for="(student,index) in students">
-          <mu-icon value="face" color="blue500" :size="18" /> 
+          <mu-icon :value="student.gender==='男'?'face':'smile'" color="blue500" :size="18" /> 
           <span class="student-name">
             {{student.name}}
           </span>
@@ -24,55 +21,44 @@
         </div>
     </div>
       </div>
-      </div>
-  </div>
-  <div class="main-content" v-else>
-    <div class="empty-card-title" :class="{'hide':open}" @click="toggleEmpty">
-      这里空空如也！
-      <p class="intrgging">不是说了啥都没有么 (゜-゜)つロ。</p>
-    </div>
   </div>
 </template>
 
 
 <script>
-import {mapActions,mapState} from 'vuex'
-  export default{
-    data(){
+import { mapActions, mapState } from 'vuex'
+export default {
+  data() {
       return {
-        open:false,
-        gotGroup:true,
-        groupId:'',
-        students:[],
-        teachers:[]
+        groupId: '',
+        students: [],
+        teachers: []
       }
     },
-    computed:{
-      ...mapState(['grouping'])
+    computed: {
+      ...mapState(['_stu_tch_Group'])
     },
-    methods:{
-      toggleEmpty(){
-        this.open=!this.open
-      },
+    methods: {
       ...mapActions(['tchGrouping'])
     },
-    mounted(){
-      var user=this.$root.getCookie('user')
-      if(!user){
-            //alert('超时未操作，请重新登录')
-           // return this.$router.push('/')
+    mounted() {
+      let user = _c.getCookie('user')
+      if (!user) {
+        //alert('超时未操作，请重新登录')
+        // return this.$router.push('/')
       }
-      this.tchGrouping({account:user})
-        .then(()=>{
-        if (this.grouping.length!=0) {
-          this.gotGroup=true
-          this.groupId=this.grouping._id
-          this.teachers=this.grouping.teachers
-          this.students=this.grouping.students
-        }
-      })
+      this.tchGrouping({ account: user })
+        .then(() => {
+          if (this._stu_tch_Group.length !== 0) {
+            this.gotGroup = true
+            this.groupId = this._stu_tch_Group._id
+            this.teachers = this._stu_tch_Group.teachers
+            this.students = this._stu_tch_Group.students
+          }
+        })
     }
-  }
+}
+
 </script>
 
 <style lang="sass" rel="stylesheet/scss" scoped>
@@ -85,12 +71,6 @@ import {mapActions,mapState} from 'vuex'
 
     max-width: 480px;
 
-    transition: $material-enter;
-
-    border-radius: 3px;
-    -webkit-box-shadow: $material-shadow-1dp;
-       -moz-box-shadow: $material-shadow-1dp;
-            box-shadow: $material-shadow-1dp;
     &:hover
     {
         transform: translateY(-4px);
@@ -104,6 +84,7 @@ import {mapActions,mapState} from 'vuex'
       left: 12px;
       top: 12px;
       font-family: Century Gothic;
+      font-variant: small-caps;
     }
     .chip
     {

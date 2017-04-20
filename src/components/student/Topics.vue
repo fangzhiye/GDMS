@@ -1,149 +1,151 @@
 <template>
   <div class="topics-table-container">
-  <div class="sub-padding">
-    <div class="table-container" :class="{'show-cart':selectedInCart[0]}">
-      <md-toolbar :class="{'md-warn':!selectedInCart[0]}">
-        <h2 class="md-title" style="flex: 1">{{tableTitle}}</h2>
-        <mu-icon-button icon="refresh" @click="refreshTopics" />
-      </md-toolbar>
-      <mu-table :fixedHeader="fixedHeader" :selectable="selectable" :showCheckbox="showCheckbox">
-        <mu-thead slot="header">
-          <mu-tr>
-            <mu-th width="8%">添加</mu-th>
-            <mu-th width="8%"><mu-flat-button class="category-sort" :iconClass="flatIcon" icon="arrow_upward" labelPosition="before">序号</mu-flat-button></mu-th>
-            <mu-th width="10%"><mu-flat-button class="category-sort" :iconClass="flatIcon" icon="arrow_upward" labelPosition="before">类别</mu-flat-button> </mu-th>
-            <mu-th width="60%">课题名称</mu-th>
-            <mu-th width="16%">已选/可选</mu-th>
-          </mu-tr>
-        </mu-thead>
-        <mu-tbody>
-          <mu-tr v-for="(topic,index) in topicsInDisplay">
-            <mu-td width="8%">
-              <mu-icon-button icon="add_circle_outline" @click="click(index,topic)" /></mu-td>
-            <mu-td width="8%">{{topic._id}}</mu-td>
-            <mu-td width="10%">{{topic.category===0?"论文":"设计"}}</mu-td>
-            <mu-td width="60%">{{topic.title}}
-              <md-tooltip md-direction="top" class="details-tooltip">
-                <div class="details-appbar">DESCRIPTION</div>
-                <div class="details-content">
-                  {{topic.details}}
-                </div>
-              </md-tooltip>
-            </mu-td>
-            <mu-td width="14%" ><span :class="{'all-selected-warn' : topic.selected >= topic.restriction}" class="selected-restriction">{{ topic.selected||0 }}/{{ topic.restriction|| 0}}</span>
-              <md-tooltip md-direction="top" class="selected-tooltip">
-                <ul>
-                  <li>第一志愿：{{topic.firststudents===undefined?0:topic.firststudents.length}}</li>
-                  <li>第二志愿：{{topic.secondstudents===undefined?0:topic.secondstudents.length}}</li>
-                  <li>第三志愿：{{topic.thirdstudents===undefined?0:topic.thirdstudents.length}}</li>
-                </ul>
-              </md-tooltip>
-            </mu-td>
-          </mu-tr>
-        </mu-tbody>
-      </mu-table>
-      <mu-content-block>
-        <mu-pagination :total="total" :current="currentPage" :pageSize="pageSize" @pageChange="handlePage">
-        </mu-pagination>
-      </mu-content-block>
+    <div class="table-container" :class="{'show-cart':_stu_TopicInCart[0]}">
+      <table>
+        <caption>
+          <span class="table-title">选题表</span>
+          <mu-icon-button icon="refresh" @click="refreshTopics" />
+        </caption>
+        <thead>
+          <tr>
+            <th width="8%">添加</th>
+            <th width="8%">
+              <mu-flat-button class="category-sort" :class="{'sort-category-icon':isCategorySorted}" disabled @click="sortCategory" labelPosition="before">序号</mu-flat-button>
+            </th>
+            <th width="10%">
+              <mu-flat-button class="category-sort" disabled labelPosition="before">类别</mu-flat-button>
+            </th>
+            <th width="60%">课题名称</th>
+            <th width="16%">已选/可选</th>
+          </tr>
+        </thead>
+        <transition-group name="list" tag="tbody" class="list-box">
+            <tr v-for="(topic,index) in search(_stu_TopicInTable)" :key="topic._id">
+              <td width="10%">
+                <span class="add-topic-button" @click="addTopic(index,topic)">
+                <i class="material-icons">add_circle_outline</i>
+              </span>
+              </td>
+              <td width="10%">{{topic._id}}</td>
+              <td width="10%">{{topic.category===0?"论文":"设计"}}</td>
+              <td width="52%">{{topic.title}}
+                <md-tooltip md-direction="top" class="details-tooltip">
+                  <div class="details-appbar">Description</div>
+                  <div class="details-content">
+                    {{topic.details}}
+                  </div>
+                </md-tooltip>
+              </td>
+              <td width="14%"><span :class="{'selected-all' : getTotal(topic) >= topic.restriction}" class="selected-restriction">{{ getTotal(topic) }}/{{ topic.restriction ||0}}</span>
+                <md-tooltip md-direction="top" class="selected-tooltip">
+                  <ul>
+                    <li>第一志愿：{{topic.firststudents===undefined?0:topic.firststudents.length}}</li>
+                    <li>第二志愿：{{topic.secondstudents===undefined?0:topic.secondstudents.length}}</li>
+                    <li>第三志愿：{{topic.thirdstudents===undefined?0:topic.thirdstudents.length}}</li>
+                  </ul>
+                </md-tooltip>
+              </td>
+            </tr>
+        </transition-group>
+      </table>
     </div>
-    <div class="topics-cart" :class="{'show-cart':selectedInCart[0]}">
-          <div class="chosen-topics-title">
-          已选课题
-          </div>
-        <div class="choice-cart">
-        
+    <div class="topics-cart" :class="{'show-cart':_stu_TopicInCart[0]}">
+      <div class="chosen-topics-title">
+        已选课题
+      </div>
+      <div class="choice-cart">
         <div class="topic-level">
           <transition-group tag="ul" name="slide-fade">
-            <li class="selected-item" v-for="(topic,index) in selectedInCart"  v-dragging="{ item: topic, list: selectedInCart, group: 'topic' }" :key="topic._id" :class="{'show-details':showDetails[index]}">
+            <li class="selected-item" v-for="(topic,index) in _stu_TopicInCart" v-dragging="{ item: topic, list: _stu_TopicInCart, group: 'topic' }" :key="topic._id" :class="{'show-details':isDetails[index]}">
               <mu-avatar :size="20" :backgroundColor="selectedBgc[index]">
                 {{index+1}}
               </mu-avatar>
-               <mu-icon class="arrow-button" :class="{'show-details':showDetails[index]}" value="keyboard_arrow_right" @click="toggleDetails(index)"/>
-
+              <mu-icon class="arrow-button" :class="{'show-details':isDetails[index]}" value="keyboard_arrow_right" @click="toggleDetails(index)" />
               <div class="selected-item-content">
                 <span class="title">{{topic._id}}.{{topic.title}}</span>
-                <p class="details" v-if="showDetails[index]">{{topic.details}}</p>
-              </div> 
+                <p class="details" v-if="isDetails[index]">{{topic.details}}</p>
+              </div>
               <mu-icon-button class="delete-button" icon="clear" @click="deleteTopic(index)" />
             </li>
           </transition-group>
-              
         </div>
-        <mu-raised-button label="提交" icon="check_circle" @click="commitSelectedTopics" color="#fff
-" backgroundColor="blue500"/>
+        <button class="blue submit-button" @click="commitSelectedTopics">
+          <img src="../../assets/icon/check_circle.svg" alt="check" />
+          <span>提交</span>
+        </button>
       </div>
-
     </div>
-  </div>
-    
   </div>
 </template>
 
 
 <script>
-import { mapState, mapActions } from 'vuex'
-
+import { mapState, mapActions ,mapMutations } from 'vuex'
 export default {
   data() {
       return {
-        total: 120,
-        currentPage: 1,
-        pageSize: 10,
         fixedHeader: true,
         selectable: false,
         showCheckbox: false,
+        isCategorySorted: false,
         lastSelection: 0,
-        tableTitle: '选题表',
-        flatIcon:{'icon-size':true},
-        showDetails:[false,false,false],
+        isDetails: [false, false, false],
         selectedBgc: ["red500", "lightBlueA700", "teal500"],
-        topicsCart: [],
-        topicsChunk: [],
-        topicsSearch:[],
-        topicsInDisplay: []
+        searchStr: ''
       }
     },
     computed: {
-      ...mapState(['topicsData','selectedInCart'])
+      ...mapState(['_stu_TopicInTable','_stu_TopicInCart'])
     },
     methods: {
-      handlePage(newIndex) {
+      /*handlePage(newIndex) {
         this.topicsInDisplay = []
         this.topicsInDisplay = this.topicsChunk[newIndex - 1]
         this.currentPage = newIndex
+      },*/
+      sortCategory() {
+        this.isCategorySorted = !this.isCategorySorted
+      },
+      search(topics) {
+        let reg = new RegExp(this.searchStr, 'i')
+          //let isNum = this.searchStr.search(/^[0-9]*[1-9][0-9]*$/)
+        return topics.filter((topics) => {
+          return (topics.title.match(reg) || topics._id.toString().match(reg))
+        })
       },
       refreshTopics() {
         this.stuGetTopics()
-          .then(() => {
-            this.total = this.topicsData.length
-            this.topicsChunk = _.chunk(this.topicsData, this.pageSize)
-            this.topicsInDisplay = this.topicsChunk[0]
-          })
       },
-      click(index, topic) {
-        var cart = this.selectedInCart
+      getTotal(topic) {
+        let t1 = topic.firststudents === undefined ? 0 : topic.firststudents.length
+        let t2 = topic.secondstudents === undefined ? 0 : topic.secondstudents.length
+        let t3 = topic.thirdstudents === undefined ? 0 : topic.thirdstudents.length
+        return t1 + t2 + t3
+      },
+      addTopic(index, topic) {
+        let cart = this._stu_TopicInCart
         if (topic._id !== this.lastSelection) {
           this.toggleTableBar = false
           switch (cart.length) {
             case 0:
               {
-                cart.push(topic)
+                this.STU_SELECT_TOPIC(topic)
+                this.showSnackbar("请在已选课题中编辑或提交选择。")
                 break
               }
             case 1:
               {
                 if (topic._id !== cart[0]._id) {
-                  cart.push(topic)
+                  this.STU_SELECT_TOPIC(topic)
                 } else {
-                  this.showSnackbar("不能选择相同志愿！")
+                  this.showSnackbar("不能选择相同志愿，请在已选课题中编辑！")
                 }
                 break
               }
             case 2:
               {
                 if (topic._id !== cart[0]._id && topic._id !== cart[1]._id) {
-                  cart.push(topic)
+                  this.STU_SELECT_TOPIC(topic)
                   this.showSnackbar("已经选满三个志愿，请在已选课题面板中编辑或提交。")
                 } else {
                   this.showSnackbar("不能选择相同志愿！不能选择相同志愿！不能选择相同志愿！")
@@ -151,9 +153,7 @@ export default {
                 break
               }
             case 3:
-              {
                 this.showSnackbar("只能选取三个志愿，请在已选课题中编辑。")
-              }
           }
         } else {
           this.lastSelection = topic._id
@@ -162,47 +162,48 @@ export default {
       },
       //提交选题按钮
       commitSelectedTopics() {
-        //-------放到全局去
-        if (this.selectedInCart.length === 0) return
-           if (!this.$root.getCookie('user')){
-             alert('超时未操作，请重新登录')
-             this.$router.push('/')
-           }
-        var selectedInCartWrapper = {
-          _id: this.$root.getCookie('user'),
-          first: this.selectedInCart[0],
-          second: this.selectedInCart[1]===undefined?-1:this.selectedInCart[1]._id,
-          third: this.selectedInCart[2]===undefined?-1:this.selectedInCart[2]._id
+        //if (this._stu_TopicInCart.length === 0) return
+        /* if (!this.$root.getCookie('user')){
+           alert('超时未操作，请重新登录')
+           this.$router.push('/')
+         }*/
+        let _stu_TopicInCartWrapper = {
+          _id: _c.getCookie('user'),
+          first: this._stu_TopicInCart[0]._id,
+          second: this._stu_TopicInCart[1] === undefined ? -1 : this._stu_TopicInCart[1]._id,
+          third: this._stu_TopicInCart[2] === undefined ? -1 : this._stu_TopicInCart[2]._id
         }
-        this.stuCommitSelection(selectedInCartWrapper)
+        this.stuCommitSelection(_stu_TopicInCartWrapper)
       },
-      toggleDetails(index){
-        //console.log(index)
-        this.$set(this.showDetails,index,!this.showDetails[index])
+      toggleDetails(index) {
+        this.$set(this.isDetails, index, !this.isDetails[index])
       },
       deleteTopic(index) {
         //删除本条选题
-        this.selectedInCart.splice(index, 1)
+        this.STU_DELTED_TOPIC(index)
       },
-      ...mapActions(['stuGetTopics', 'showSnackbar','stuCommitSelection'])
+      ...mapActions(['stuGetTopics', 'showSnackbar', 'stuCommitSelection','stuSelectionResult']),
+      ...mapMutations(['STU_SELECT_TOPIC','STU_DELTED_TOPIC'])
     },
-    beforeDestroyed(){
+    beforeDestroy() {
       //切换路由时如果还没保存 就弹出提示
-      this.selectedInCart=[]
+      //this._stu_TopicInCart = []
     },
     mounted() {
-      var id = this.$root.getCookie('user')
-      this.stuGetTopics().then(()=>{
-        this.total=this.topicsData.length
-        this.topicsChunk = _.chunk(this.topicsData, this.pageSize)
-        this.topicsInDisplay = this.topicsChunk[0]
-      })
-      if (this.topicsInDisplay.length>0) {
-        this.topicsInDisplay = _.sortBy(this.topicsInDisplay,(o)=>{
-        return o._id
-      })
-      }
+      let id = _c.getCookie('user')
+      this.stuGetTopics()
+      this.stuSelectionResult({studentId:id})
 
+        //this.stuGetTopics().then(()=>{
+        /*  this.total=this._stu_TopicInTable.length
+          this.topicsChunk = _.chunk(this._stu_TopicInTable, this.pageSize)
+          this.topicsInDisplay = this.topicsChunk[0]
+        //)
+        if (this.topicsInDisplay.length>0) {
+          this.topicsInDisplay = _.sortBy(this.topicsInDisplay,(o)=>{
+          return o._id
+        })
+        }*/
     }
 }
 
@@ -223,116 +224,96 @@ export default {
     &.show-cart
     {
         width: calc(100% - 256px);
-    }
-    .md-toolbar
-    {
-        min-height: 40px;
+        @media (max-width: 993px)
+        {
+          width: 100%;
+        }
 
+    }
+    caption
+    {
         border-top-left-radius: 3px;
         border-top-right-radius: 3px;
-        h2.md-title
+        position: relative;
+        height: 36px;
+        span.table-title
         {
+          position: absolute;
+          left: 16px;
+          top:8px;
             font-weight: lighter;
         }
         .mu-icon-button
         {
+          position: absolute;
+          right: 64px;
             width: 36px;
             height: 36px;
             padding: 0;
         }
     }
+
     .selected-restriction
     {
         padding: 4px;
         transition: $material-enter;
-
-        color: #42b983;
-        border: 1px #42b983 solid;
-        border-radius: 8px;
+        cursor: default;
+        color: $greenVue;
+        border: 1px $greenVue solid;
+        border-radius: 2px;
     }
-    .all-selected-warn
+    .selected-all
     {
-        color: #f44336;
-        border-color: #f44336;
+        color: $red;
+        border-color: $red;
     }
-    .mu-table
+    table
     {
-      .mu-th{
-        padding-left: 18px;
-        padding-right: 0;
-      }
-        .mu-td:first-child
+        td:first-child
         {
-            padding-right: 8px;
+            padding-right: 32px;
             padding-left: 16px;
         }
-        .mu-td:nth-child(4)
+        td:nth-child(4)
         {
             cursor: help;
             white-space: normal;
         }
-        .mu-td
+        td
         {
+          height: 40px;
             font-size: 14px;
-            .mu-icon-button
-            {
-                &:hover
-                {
-                    color: #f44336;
-                }
-            }
-        }
-        .mu-tr
+            padding: 2px 0;
+        .add-topic-button
         {
-            transition: $material-leave;
-        } 
-        .category-sort
-            {
-                min-width: 36px;
+          width: 32px;
+            height: 32px;
+            cursor: pointer;
+            margin-left: 12px;
+    transition: $material-enter;
 
-            }
-        .mu-tr:nth-child(even)
-        {
-            background-color: #f4f4f4;
+          &:hover{
+            color: $red;
+          }
+            
+            
         }
-        .mu-tr.hover
+        }
+        .category-sort
+        {
+            min-width: 36px;
+        }
+        tr:hover
         {
             background-color: #dedede;
 
             .selected-restriction{
+              background-color: $greenVue;
               color: #fff;
-              background-color: #42b983;
             }
-            .all-selected-warn{
+            .selected-all{
+              background-color: $red;
               color: #fff;
-              background-color: #f44336;
-            }
-        }
-    }
-    .mu-content-block
-    {
-        max-height: 48px;
-        padding-left: calc(50% - 200px);
-    }
-    @media (max-width: 1366px)
-    {
-        .mu-table
-        {
-            .mu-td
-            {
-                font-size: 13px;
-
-                height: 40px;
-            }
-            .mu-tr
-            {
-                height: 40px;
-            }
-            .mu-icon-button
-            {
-                width: 36px;
-                height: 36px;
-                padding: 0;
             }
         }
     }
@@ -351,7 +332,7 @@ export default {
 
     transition: $material-enter;
 
-    background-color: #fff;
+    background-color: white;
     -webkit-box-shadow: $material-shadow-3dp;
        -moz-box-shadow: $material-shadow-3dp;
             box-shadow: $material-shadow-3dp;
@@ -367,8 +348,8 @@ export default {
         margin: 16px auto;
         padding: 8px;
 
-        color: #3f51b5;
-        border: 1px solid #3f51b5;
+        color: $indigo;
+        border: 1px solid $indigo;
         border-radius: 3px;
     }
     .dragging
@@ -395,7 +376,7 @@ export default {
             transition: $material-enter;
 
             border: 1px #dedede solid;
-            border-radius: 6px;
+            border-radius: 3px;
             &.show-details
             {
                 min-height: 256px;
@@ -406,7 +387,7 @@ export default {
             }
             .mu-avatar
             {
-                font-family: $fontCenturyGothic;
+                font-family: $fontSansSerif;
 
                 position: absolute;
                 z-index: 100;
@@ -438,7 +419,7 @@ export default {
                 height: 36px;
                 padding: 0;
 
-                color: #f44336;
+                color: $red;
             }
             .selected-item-content
             {
@@ -461,54 +442,56 @@ export default {
                 }
             }
         }
-    .mu-raised-button
+    .submit-button
     {
-        left: 84px;
+        margin: 0 auto;
+        width: 84px;
+        position: relative;
+       left: 84px;
     }
 }
 
+.list-box{
+  width: 100%;
+  overflow-x: hidden!important;
+  overflow-y: scroll!important;
+  height: 100%;
+}
 
+.sort-category-icon{
+  
+}
 @media (max-width: 993px)
 {
     .topics-cart{
       right: -270px;
     }
 }
-.md-tooltip.selected-tooltip
-{
-    font-family: $fontYahei;
-    font-size: 14px;
 
-    width: 100px;
-    height: auto;
-    padding: 8px;
+.md-tooltip{
+  height: auto;
     z-index: 248;
     white-space: normal;
-
+    font-family: $fontYahei;
+    font-size: 14px;
     color: #000;
-    border-radius: 5px;
+    border-radius: 2px;
     background-color: #fff;
+
     -webkit-box-shadow: $material-shadow-3dp;
        -moz-box-shadow: $material-shadow-3dp;
             box-shadow: $material-shadow-3dp;
 }
+
+.md-tooltip.selected-tooltip
+{
+    padding: 8px;
+    width: 100px;
+}
 .md-tooltip.details-tooltip
 {
-    font-family: $fontYahei;
-    font-size: 14px;
-
     width: 480px;
-    height: auto;
     padding: 0;
-    z-index: 248;
-    white-space: normal;
-
-    color: #000;
-    border-radius: 5px;
-    background-color: #fff;
-    -webkit-box-shadow: $material-shadow-3dp;
-       -moz-box-shadow: $material-shadow-3dp;
-            box-shadow: $material-shadow-3dp;
     .details-appbar
     {
         line-height: 16px;
@@ -516,11 +499,11 @@ export default {
         width: 100%;
         height: 24px;
         padding: 4px 8px;
-
+        font-variant: small-caps;
         color: #fff;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
-        background-color: #f44336;
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        background-color: $red;
     }
     .details-content
     {
@@ -546,6 +529,14 @@ export default {
 .slide-fade-move
 {
     transition: $material-enter;
+}
+
+.list-enter-active, .list-leave-active {
+  transition: $material-enter;
+}
+.list-enter, .list-leave-active {
+  opacity: 0;
+  transform: translateZ(30px);
 }
 
 </style>

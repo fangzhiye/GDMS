@@ -1,59 +1,61 @@
 <template>
-    <div class="layout">
-      <md-tabs md-fixed class="md-transparent" md-centerd>
+    <div class="creation-container sub-padding">
+       <md-tabs md-fixed md-centerd class="md-transparent">
         <md-tab id="teacher-account-upload" md-label="课题创建" md-icon="library_add">
           <mu-card class="creation-card">
             <mu-card-text>
               <span>可选人数：{{available}}</span>
               <mu-slider v-model="available" :min="1" :max="10" :step="1" @change="availableChange" class="available-slider" />
               <br/>
-              <mu-select-field v-model="category" label="课题类别" @change="categoryChange">
+              <mu-select-field v-model="category" label="课题类别" @change="categoryChange" class="select-field">
                 <mu-menu-item value="0" title="论文" />
                 <mu-menu-item value="1" title="设计" />
               </mu-select-field>
-              <mu-select-field v-model="fields" multiple :labelFocusClass="['label-foucs']" :errorText="fieldsError" label="课题研究方向" @change="fieldsChange" labelFloat>
+              <br/>
+              <mu-select-field v-model="fields" multiple :labelFocusClass="['label-foucs']" :errorText="fieldsError" label="课题研究方向" @change="fieldsChange" class="select-field" labelFloat>
                 <mu-sub-header>可多选</mu-sub-header>
                 <mu-menu-item v-for="text,index in fieldsData" :value="text" :title="text" />
               </mu-select-field>
+              <br/>
               <mu-text-field label="课题名称" v-model.trim="titleText" :errorText="titleError" labelFloat/>
               <br/>
               <mu-text-field label="课题简介" v-model.trim="detailText" :errorText="detailError" multiLine labelFloat :rows="6" :rowsMax="20" />
             </mu-card-text>
             <mu-card-actions>
-              <mu-raised-button icon="add" label="创建" @click="createTopic" secondary/>
+              <mu-raised-button label="创建" @click="createTopic" secondary>
+                <i class="material-icons">add</i>
+              </mu-raised-button>
             </mu-card-actions>
           </mu-card>
         </md-tab>
         <md-tab id="teacher-topic-admin" md-label="课题管理" md-icon="subject">
-          <mu-card class="created-topics">
-            <div class="table-container">
-              <mu-table :fixedHeader="fixedHeader" :selectable="selectable" :showCheckbox="showCheckbox">
-                <mu-thead slot="header">
-                  <mu-tr>
-                    <mu-th width="4%">序号</mu-th>
-                    <mu-th width="8%">类别</mu-th>
-                    <mu-th width="20%">课题名称</mu-th>
-                    <mu-th width="42%">课题简介</mu-th>
-                    <mu-th width="12%">可选人数</mu-th>
-                    <mu-th width="9%">删除</mu-th>
-                  </mu-tr>
-                </mu-thead>
-                <mu-tbody>
-                  <mu-tr v-for="(topic,index) in createdTopics">
-                    <mu-td width="4%">{{topic._id}}</mu-td>
-                    <mu-td width="7%">{{topic.category===0?"论文":"设计"}}</mu-td>
-                    <mu-td width="20%">{{topic.title}}
-                    </mu-td>
-                    <mu-td width="44%">{{ topic.details }}</mu-td>
-                    <mu-td width="10%">{{ topic.restriction }}</mu-td>
-                    <mu-td width="10%">
+            <div class="table-container paper">
+              <table>
+                <thead slot="header">
+                  <tr>
+                    <th width="4%">序号</th>
+                    <th width="8%">类别</th>
+                    <th width="20%">课题名称</th>
+                    <th width="42%">课题简介</th>
+                    <th width="12%">可选人数</th>
+                    <th width="9%">删除</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(topic,index) in _tch_TopicCreatedAll">
+                    <td width="4%">{{topic._id}}</td>
+                    <td width="7%">{{topic.category===0?"论文":"设计"}}</td>
+                    <td width="20%">{{topic.title}}
+                    </td>
+                    <td width="44%">{{ topic.details }}</td>
+                    <td width="10%">{{ topic.restriction }}</td>
+                    <td width="10%">
                       <mu-icon-button @click="deleteTopic(topic , index)" icon="cancel"></mu-icon-button>
-                    </mu-td>
-                  </mu-tr>
-                </mu-tbody>
-              </mu-table>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </mu-card>
         </md-tab>
       </md-tabs>
     </div>
@@ -61,11 +63,10 @@
 
 
 <script type="text/javascript">
-import { mapState, mapActions, mapMutations } from 'vuex'
+import { mapState, mapActions } from 'vuex'
 export default {
   data() {
       return {
-        snackbarText: '', //snackbar提示条文字
         available: 1, //初始可选人数
         category: '0', //初始类别 论文 
         titleText: '', //课题名称
@@ -74,129 +75,116 @@ export default {
         titleError: '',
         detailError: '',
         fields: [],
-        fieldsData: ["计算机视觉", "iOS开发", "Android开发", "前端开发", "计算机图形学", "信息可视化", "云计算", "计算机网络", "人工智能"],
-        topicsData: [],
-        fixedHeader:true,
-        selectable:false,
-        showCheckbox:false,
+        fieldsData: [
+        "图形图像处理", "游戏开发设计", "信息可视化", 
+        "数字视音频处理", "移动互联网", "软件工程", 
+        "Web开发", "人机交互", "虚拟现实&增强现实", 
+        "文化传媒","信息安全","信号处理", 
+        "云计算","大数据","机器学习&深度学习",
+        "算法研究","其他"],
+        fixedHeader: true,
+        selectable: false,
+        showCheckbox: false,
       }
     },
     computed: {
-      ...mapState(['user', 'createdTopics'])
+      ...mapState(['_tch_TopicCreatedAll'])
     },
     methods: {
-      ...mapActions(['tchCreateTopic', 'tchDeleteTopic', 'tchGetCreatedTopics', 'showSnackbar']),
-      ...mapMutations(['SHOW_SNACKBAR']),
       createTopic() {
-        if (this.fields.length == 0) {
+        let id = _c.getCookie('user')
+        if (this.fields.length === 0) {
           return this.fieldsError = "还没选择课题研究方向！"
         }
-        if (this.titleText.length == 0) {
+        if (this.titleText.length === 0) {
           return this.titleError = "好像还没写名字？"
         }
-        if (this.detailText.length == 0) {
+        if (this.detailText.length === 0) {
           return this.detailError = "随便写点介绍吧！"
         }
         let currentTopic = {
-          mentor: this.$root.getCookie('user'),
-          category: this.category,
-          fields: this.fields,
-          title: this.titleText,
-          details: this.detailText,
-          available: this.available
-        }
-
-
-        //重新取得所有topics
+            mentor: id,
+            category: this.category,
+            fields: this.fields,
+            title: this.titleText,
+            details: this.detailText,
+            available: this.available
+          }
+          //重新取得所有topics
         this.tchCreateTopic(currentTopic)
           .then(() => {
             this.tchGetCreatedTopics({
-              teacherId: this.$root.getCookie('user'),
+              teacherId: id,
             })
-             this.showSnackbar("课题已创建成功")
-                 this.topicsData=[]
-                for(let i=0;i<this.createdTopics.length;i++){
-             this.topicsData.push( this.createdTopics[i])
-          }
             this.fields = []
             this.titleText = ''
             this.detailText = ''
             this.available = '1'
+            this.showSnackbar("课题创建成功")
           })
       },
       deleteTopic(topic, index) {
-        //删除已创建的课题
+        let id = _c.getCookie('user')
         this.tchDeleteTopic({
-            teacherId: this.$root.getCookie('user'),
+            teacherId: id,
             topicId: topic._id
           })
           .then(() => {
             this.tchGetCreatedTopics({
-                teacherId: this.$root.getCookie('user'),
-              })
-              .then(() => {
-                this.topicsData = this.createdTopics
+                teacherId: id,
               })
               .then(() => {
                 this.showSnackbar("课题已删除")
-                 this.topicsData=[]
-                for(let i=0;i<this.createdTopics.length;i++){
-             this.topicsData.push( this.createdTopics[i])
-          }
+              })
+              .catch(err=>{
+                console.log('课题删除出错'+err)
               })
           })
       },
       availableChange(value) {
-        //选中后的值
         this.available = value;
       },
       categoryChange(value) {
         this.category = value
       },
       fieldsChange(value) {
-        //得到value对应的index
         this.fields = value
       },
       clearError() {
         this.fieldsError = ''
         this.titleError = ''
         this.detailError = ''
-      }
+      },
+      ...mapActions([
+        'tchCreateTopic',
+        'tchDeleteTopic',
+        'tchGetCreatedTopics',
+        'showSnackbar'
+      ])
     },
     mounted() {
       //如果cookie过期则跳转到登录界面------------------
-      if(this.$root.getCookie('user')){
+      let id = _c.getCookie('user')
+        //if (!id) 
+        //return this.$router.push('/')
       this.tchGetCreatedTopics({
-          teacherId: this.$root.getCookie('user'),
-        })
-        .then(() => {
-          for(let i=0;i<this.createdTopics.length;i++){
-             this.topicsData.push( this.createdTopics[i])
-          }
-        })
-        }else{
-          this.$router.push('/')
-        }
+        teacherId: id
+      })
     },
     watch: {
       fields: 'clearError',
       titleText: 'clearError',
       detailText: 'clearError'
-
     }
 }
 
 </script>
 
 <style lang="sass" rel="stylesheet/scss" scoped>
-.layout
+.creation-container
 {
     z-index: 0;
 
-    width: 100%;
-    .md-tabs-navigation{
-        min-height: 60px;
-    }
     .creation-card
     {
         text-align: left;
@@ -255,6 +243,10 @@ export default {
         {
             max-width: 50vw;
         }
+        .select-field{
+          width: 256px !important;
+        }
+
     }
     .created-topics
     {
@@ -274,5 +266,4 @@ export default {
         }
     }
 }
-
 </style>
