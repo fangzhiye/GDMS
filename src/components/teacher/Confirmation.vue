@@ -11,21 +11,20 @@
       <mu-icon value="help" :size="36" />
     </div>
     <div class="teacher-status-card">
-      <md-layout md-gutter="16">
-        <md-layout class="single-card" md-flex-small="50" md-flex-medium="33" v-for="(topic,index) in _tch_StudentInCard">
-          <div class="paper">
+    <div class="grid">
+      <figure class="single-card paper" v-for="(topic,index) in _tch_StudentInCard">
             <div class="card-title">
               {{topic._id}}. {{topic.title}}
-              <mu-avatar slot="right" backgroundColor="red500" :size="24">{{topic.available}}</mu-avatar>
+              <mu-avatar class="no-selection" slot="right" backgroundColor="red500" :size="24">{{topic.available}}</mu-avatar>
             </div>
             <ul>
               <li v-for="(student,i) in topic.students" class="student-list">
                 <student-card :student="student" @select="selectStudent(student,topic)" :isSelected="student.isselected"></student-card>
               </li>
             </ul>
-          </div>
-        </md-layout>
-      </md-layout>
+        </figure>
+    </div>
+        
     </div>
     <mu-dialog :open="openDialog" title="确认选择" @close="closeDialog">
       你确定要选择{{currentStudent.name}}吗？
@@ -60,9 +59,7 @@ export default {
       },
       finalConfirm(){
         let tchId=_c.getCookie('user') 
-        //this.$set(this.currentStudent, 'isselected', true)
         
-        if (!tchId) {
           let tchSelection = {
             teacherId:tchId,
             studentId: this.currentStudent._id, 
@@ -72,16 +69,12 @@ export default {
           .then(()=>{
             this.showSnackbar('成功选择了'+this.currentStudent.name)
             this.TCH_SET_STU_SELECTED(this.currentStudent)
-            this.openDialog=false
+            this.openDialog = false
             this.currentTopic.count++
-            if(this.currentTopic.count===this.currentTopic.available){
+            if(this.currentTopic.count === this.currentTopic.available){
               this.TCH_DELETE_STUDENT(this.currentTopic)
             }
           })
-          .catch(err=>{
-            console.log('选择学生出错了'+err)
-          })
-        }
       },
       closeDialog(){
         this.openDialog=false
@@ -94,11 +87,8 @@ export default {
     },
     created() {
         this.tchGetTopics({ teacherId: _c.getCookie('user') })
-          .catch(err=>{
-            console.log('获取题目和选题学生错误'+err)
-          })
         _.forEach(this._tch_StudentInCard,(topic)=>{
-          topic.count=0
+          topic.count = 0
         })
     },
     components: {
@@ -124,7 +114,7 @@ export default {
         padding: 8px;
 
         color: #fff;
-        background-color: $indigo400;
+        background-color: $teal;
     }
     .help-content
     {
@@ -150,65 +140,50 @@ export default {
 .teacher-status-card
 {
     margin: 8px 0;
+
     transition: $material-enter;
-    .div
+    .student-list
     {
-        transition: $material-enter;
-        border-radius: 4px;
-        &:hover
-        {
-            -webkit-box-shadow: $material-shadow-9dp;
-               -moz-box-shadow: $material-shadow-9dp;
-                    box-shadow: $material-shadow-9dp;
-        }
+        margin: 0;
     }
-    .student-list{
-      margin: 0;
+    .grid
+    {
+        display: flex;
+
+        flex-wrap: wrap;
+        align-content: space-between;
+        align-items: flex-start;
     }
     .single-card
     {
-        margin: 8px 0;
-        flex: initial;
-        -ms-flex: initial;
-        .div{
-          width: 100%;
-        }
+        z-index: 200;
+
+        margin: 12px;
+
+        flex: 0 0 25%;
         .card-title
         {
+            font-size: 16px;
+
             position: relative;
+
+            min-width: 496px;
             padding: 8px 10px;
 
-            color: #fff;
-            font-size: 16px;
+            color: white;
             border-top-left-radius: 4px;
             border-top-right-radius: 4px;
-            background-color: $indigo400;
+            background-color: $teal;
             .mu-avatar
             {
                 font-family: $fontCenturyGothic;
 
                 position: absolute;
-                right: -12px;
                 top: -12px;
-                 -khtml-user-select:      none;
-                -webkit-user-select:      none;
-                   -moz-user-select: -moz-none;
-                    -ms-user-select:      none;
-                        user-select:      none;
+                right: -12px;
             }
         }
     }
-}
-.overlay-fade-enter-active,
-.overlay-fade-leave-active
-{
-    transition: opacity .45s cubic-bezier(.23, 1, .32, 1);
-}
-
-.overlay-fade-enter,
-.overlay-fade-leave-active
-{
-    opacity: 0 !important;
 }
 
 </style>

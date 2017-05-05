@@ -56,7 +56,7 @@ var midGroup = function(){
        for(var i=0;i<groups.length;i++){
         delete groups[i].mentors
        }
-      console.log(groups)
+    //  console.log(groups)
      // xlsx.build(groups)
       writeToExcel(groups)
        }, 1000);/// console.log(group)
@@ -80,7 +80,7 @@ var fillGroupData = function(groupId){
                         .exec()
                         .then(topic=>{
                         
-                        students = topic.finalstudents
+                        var students = topic.finalstudents
                         for(var i = 0 ;i < students.length; i++){
                             var row = []
                             row.push(

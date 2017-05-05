@@ -6,6 +6,9 @@ Vue.use(Router)
 import Login from '../components/login/Login.vue'
 import EntryInformation from '../components/utils/EntryInformation.vue'
 
+//404
+import NotFound from '../components/utils/NotFound.vue'
+
 import AdminRouter from './admin'
 import StudentRouter from './student'
 import TeacherRouter from './teacher'
@@ -17,13 +20,17 @@ const router = new Router({
     { path: '/entryinformation', component: EntryInformation },
     StudentRouter,
     TeacherRouter,
-    AdminRouter
-  ]
-})
-
-router.beforeEach((to, from, next) => {
-  window.scrollTo(0, 0)
-  next()
+    AdminRouter,
+    { path: '*', component: NotFound },
+    
+  ],
+  scrollBehavior (to, from, savedPosition) {
+  if (savedPosition) {
+    return savedPosition
+  } else {
+    return { x: 0, y: 0 }
+  }
+}
 })
 
 export default router

@@ -1,5 +1,8 @@
 <template>
   <div class="group-container">
+    <div class="group-current-status paper">
+      {{step==='midgroup'?'中':'终'}}期分组
+    </div>
     <div class="group-status-card card">
       <div class="teacher-wrapper">
       <mu-avatar backgroundColor="red500" class="group-id-icon">{{groupId}}</mu-avatar>
@@ -10,15 +13,17 @@
       </div>
       <div class="student-wrapper">
       <span class="card-title">Student</span>
-      <div class="chip" v-for="(student,index) in students">
-          <mu-icon :value="student.gender==='男'?'face':'smile'" color="blue500" :size="18" /> 
+      <div class="student-chips">
+        <span class="chip" v-for="(student,index) in students">
+          <mu-icon :value="student.gender==='女'?'face':'mood'" color="blue500" :size="18" /> 
           <span class="student-name">
             {{student.name}}
           </span>
-          <div class="student-topic">
+          <span class="student-topic">
             {{student.final.title}}
-          </div>
-        </div>
+          </span>
+        </span>
+      </div>
     </div>
       </div>
   </div>
@@ -30,6 +35,7 @@ import { mapActions, mapState } from 'vuex'
 export default {
   data() {
       return {
+        step: 'midgroup',
         groupId: '',
         students: [],
         teachers: []
@@ -43,17 +49,31 @@ export default {
     },
     mounted() {
       let user = _c.getCookie('user')
-      if (!user) {
-        //alert('超时未操作，请重新登录')
-        // return this.$router.push('/')
-      }
-      this.tchGrouping({ account: user })
+      
+      this.GET('/getstep')
+        .then(res=>{
+          this.step = res.data.curstep
+          if(this.step==='midgroup'){
+            this.POST('/teacher/tchMGrouping',{account:user})
+              .then(res=>{
+                if (res.data) {
+                this.gotGroup = true
+                this.groupId = res.data._id
+                this.teachers = res.data.teachers
+                this.students = res.data.students
+          }
+              })
+          }else{
+            this.tchGrouping({ account: user })
         .then(() => {
+          console.log(this._stu_tch_Group)
           if (this._stu_tch_Group.length !== 0) {
             this.gotGroup = true
             this.groupId = this._stu_tch_Group._id
             this.teachers = this._stu_tch_Group.teachers
             this.students = this._stu_tch_Group.students
+          }
+        })
           }
         })
     }
@@ -63,14 +83,26 @@ export default {
 
 <style lang="sass" rel="stylesheet/scss" scoped>
 @import '../../style/variables.scss';
+.group-current-status
+{
+    font-size: 24px;
+
+    display: inline-block;
+
+    width: 132px;
+    margin: 16px 0;
+    padding: 12px;
+
+    border-left: 6px solid $red;
+}
 .group-status-card
 {
     font-size: 16px;
 
     position: relative;
 
-    max-width: 480px;
-
+    min-width: 480px;
+    max-width: calc(100% - 64px);
     &:hover
     {
         transform: translateY(-4px);
@@ -79,80 +111,55 @@ export default {
            -moz-box-shadow: $material-shadow-6dp;
                 box-shadow: $material-shadow-6dp;
     }
-    .card-title{
-      position: absolute;
-      left: 12px;
-      top: 12px;
-      font-family: Century Gothic;
-      font-variant: small-caps;
-    }
-    .chip
+    .card-title
     {
-        font-size: 14px;
+        font-family: Century Gothic;
+        font-variant: small-caps;
 
-        position: relative;
-
-        display: inline-block;
-        cursor: default;
-        width: 100px;
-        max-width: 128px;
-        height: 32px;
-        margin: 6px;
-        padding: 4px 16px 4px 12px;
-
-        transition: $material-enter;
-
-        border: 1px #efefef solid;
-        border-radius: 16px;
-        background-color: #fff;
-        overflow: hidden;
-        &:hover
-        {
-                    -webkit-box-shadow: $material-shadow-1dp;
-               -moz-box-shadow: $material-shadow-1dp;
-                    box-shadow: $material-shadow-1dp;
-        }
-        .mu-icon
-        {
-            position: relative;
-            top: 2px;
-        }
+        position: absolute;
+        top: 12px;
+        left: 12px;
     }
-
     .teacher-wrapper
     {
+        position: relative;
+
         padding: 36px 16px 16px 8px;
 
         background-color: #e4e4e4;
-        position: relative;
-    .group-id-icon{
-      position: absolute;
-      right: -20px;
-      bottom: - 20px;
-      z-index: 20;
-    }
-        .chip{
-          width: auto;
+        .group-id-icon
+        {
+            position: absolute;
+            z-index: 20;
+            right: -20px;
+            bottom: - 20px;
         }
     }
     .student-wrapper
     {
         position: relative;
-        background-color: #fff;
+
         padding: 36px 16px 16px 8px;
-        .chip{
-          background-color: #e4e4e4;
-          &:hover
+
+        background-color: white;
+        .student-chips
         {
-          height: 80px;
-          width: auto;
+            display: inline-flex;
+
+            flex-wrap: wrap;
         }
-        .student-topic{
-          padding: 4px 0;
+        .student-name
+        {
+            margin: 0 6px;
         }
+        .mu-icon
+        {
+            position: relative;
+            top: 2px;
+            left: -2px;
         }
-      }
-        
+    }
 }
+
 
 </style>

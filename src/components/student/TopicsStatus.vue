@@ -17,24 +17,24 @@
             <a :href="'mailto:'+_stu_TopicComfirmed.email">{{_stu_TopicComfirmed.email}}</a>
           </div>
           <div class="office chip">
-            <mu-icon value="desktop_mac" :size="18" /> {{_stu_TopicComfirmed.office}}
+            <mu-icon value="desktop_mac" :size="18" /> {{_stu_TopicComfirmed.office||'无'}}
           </div>
           <div class="qq chip">
-            <img src="../../assets/icon/qq.svg" alt="QQ" /> {{_stu_TopicComfirmed.qq}}
+            <img src="../../assets/icon/qq.svg" alt="QQ" /> {{_stu_TopicComfirmed.qq||'无'}}
           </div>
           <div class="wechat chip">
-            <img src="../../assets/icon/wechat.svg" alt="WECHAT" /> {{_stu_TopicComfirmed.wechat}}
+            <img src="../../assets/icon/wechat.svg" alt="WECHAT" /> {{_stu_TopicComfirmed.wechat||'无'}}
           </div>
         </div>
         <div class="topic-wrapper">
           <div class="topic-info">
-            {{_stu_TopicComfirmed._id}}
+            {{_stu_TopicComfirmed._id||'无'}}
           </div>
           <div class="topic-info">
-            {{_stu_TopicComfirmed.title}}
+            {{_stu_TopicComfirmed.title||'无'}}
           </div>
           <div class="topic-info">
-            {{_stu_TopicComfirmed.details}}
+            {{_stu_TopicComfirmed.details||'无'}}
           </div>
           <span class="category-tag">{{_stu_TopicComfirmed.category===0?'论文':'设计'}}
         </span>
@@ -45,11 +45,11 @@
       <ul class="selected-topic-list">
         <li class="card"  v-for="(topic,index) in _stu_TopicInCart">
           <div class="topic-title">
-            {{topic._id}}.{{topic.title}}
+            {{topic._id||'无'}}.{{topic.title}}
             <span class="topic-level">{{index+1}}</span>
           </div>
           <div class="topic-details">
-            {{topic.details}}
+            {{topic.details||'无'}}
           </div>
         </li>
       </ul>
@@ -62,7 +62,7 @@ import {mapActions,mapState} from 'vuex'
   export default{
     data(){
       return {
-        isTopicConfirmed:false
+        isTopicConfirmed: false
       }
     },
     computed:{
@@ -86,13 +86,9 @@ import {mapActions,mapState} from 'vuex'
     },
     mounted(){
       let id=_c.getCookie('user')
-      /*if (!id){
-                alert('超时未操作，请重新登录')
-                return this.$router.push('/')
-              }*/
       this.stuSelectionResult({studentId: id})
         .then(()=>{
-        if (this._stu_TopicComfirmed.name.length!=0) {
+        if (this._stu_TopicComfirmed.name.length !== 0) {
           this.isTopicConfirmed=true
         }
       })
@@ -109,14 +105,9 @@ import {mapActions,mapState} from 'vuex'
     position: relative;
 
     width: 320px;
-
     &:hover
     {
         transform: translateY(-4px);
-
-        -webkit-box-shadow: $material-shadow-6dp;
-           -moz-box-shadow: $material-shadow-6dp;
-                box-shadow: $material-shadow-6dp;
     }
     .teacher-info
     {
@@ -153,16 +144,13 @@ import {mapActions,mapState} from 'vuex'
             }
         }
     }
-    .email
+    .email a
     {
-        a
-        {
-            margin-left: 4px;
+        margin-left: 4px;
 
-            text-decoration: none !important;
+        text-decoration: none !important;
 
-            color: rgba(0, 0, 0, .5) !important;
-        }
+        color: rgba(0, 0, 0, .5) !important;
     }
     .topic-wrapper
     {
@@ -217,46 +205,62 @@ import {mapActions,mapState} from 'vuex'
     }
 }
 
-.selected-topic-list{
-  display: flex;
-  padding: 8px;
-  align-items: center;
-  justify-items:center;
-  li{
-    margin-right: 20px;
-    border-radius: 3px;
-    display: inline-block;
-    &:hover
+.selected-topic-list
+{
+    display: flex;
+
+    padding: 8px;
+
+    align-items: center;
+    justify-items: center;
+    li.card
     {
-        transform: translateY(-4px);
+        flex: 0 1 50%;
 
-        -webkit-box-shadow: $material-shadow-6dp;
-           -moz-box-shadow: $material-shadow-6dp;
-                box-shadow: $material-shadow-6dp;
+        margin-right: 20px;
+
+        border-radius: 3px;
+        &:hover
+        {
+            transform: translateY(-4px);
+
+            -webkit-box-shadow: $material-shadow-6dp;
+               -moz-box-shadow: $material-shadow-6dp;
+                    box-shadow: $material-shadow-6dp;
+        }
+        div
+        {
+            padding: 8px;
+        }
+        .topic-title
+        {
+            font-size: 16px;
+
+            position: relative;
+
+            color: white;
+            background-color: #3f51b5;
+        }
+        .topic-level
+        {
+            font-size: 20px;
+
+            position: absolute;
+            right: -16px;
+            bottom: -16px;
+
+            display: inline-block;
+
+            width: 32px;
+            height: 32px;
+            padding-left: 10px;
+
+            border-radius: 16px;
+            background-color: #f44336;
+        }
     }
-    div{
-      padding: 8px;
-    }
-    .topic-title{
-        background-color: #3F51B5;
-        color: white;
-        position: relative;
-        font-size: 16px;
-      }
-      .topic-level{
-        position: absolute;
-        display: inline-block;
-        width: 32px;
-        height: 32px;
-        right: -16px;
-        bottom: -16px;
-        border-radius: 16px;
-        background-color: #f44336;
-        padding-top: 7px;
-        padding-left: 10px;
-        font-size: 20px;
-      }
-  }
 }
-
+.chip{
+  height: 32px;
+}
 </style>

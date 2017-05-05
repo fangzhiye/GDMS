@@ -1,6 +1,10 @@
 <template>
   <div class="topics-table-container">
-    <div class="table-container" :class="{'show-cart':_stu_TopicInCart[0]}">
+    <div class="search-bar-wrapper">
+      <mu-icon class="search-icon" value="search"/>
+      <input type="text" @keyup.enter="search" autocomplete="off" v-model.trim="searchStr" placeholder="Search for topics" class="search-input" name="search">
+    </div>
+    <div class="table-container paper">
       <table>
         <caption>
           <span class="table-title">选题表</span>
@@ -9,17 +13,20 @@
         <thead>
           <tr>
             <th width="8%">添加</th>
-            <th width="8%">
+            <th width="10%">
               <mu-flat-button class="category-sort" :class="{'sort-category-icon':isCategorySorted}" disabled @click="sortCategory" labelPosition="before">序号</mu-flat-button>
             </th>
-            <th width="10%">
+            <th width="12%">
               <mu-flat-button class="category-sort" disabled labelPosition="before">类别</mu-flat-button>
             </th>
-            <th width="60%">课题名称</th>
+            <th width="50%">课题名称</th>
             <th width="16%">已选/可选</th>
           </tr>
         </thead>
-        <transition-group name="list" tag="tbody" class="list-box">
+      </table>
+      <div class="topic-table-wrapper scrollbar" ref="tableBody">
+        <table class="topic-table">
+            <transition-group name="list" tag="tbody">
             <tr v-for="(topic,index) in search(_stu_TopicInTable)" :key="topic._id">
               <td width="10%">
                 <span class="add-topic-button" @click="addTopic(index,topic)">
@@ -29,47 +36,58 @@
               <td width="10%">{{topic._id}}</td>
               <td width="10%">{{topic.category===0?"论文":"设计"}}</td>
               <td width="52%">{{topic.title}}
-                <md-tooltip md-direction="top" class="details-tooltip">
+                <wyvonj-tooltip direction="top" class="details-tooltip">
                   <div class="details-appbar">Description</div>
                   <div class="details-content">
                     {{topic.details}}
                   </div>
-                </md-tooltip>
+                </wyvonj-tooltip>
               </td>
               <td width="14%"><span :class="{'selected-all' : getTotal(topic) >= topic.restriction}" class="selected-restriction">{{ getTotal(topic) }}/{{ topic.restriction ||0}}</span>
-                <md-tooltip md-direction="top" class="selected-tooltip">
+                <wyvonj-tooltip direction="top" class="selected-tooltip">
                   <ul>
                     <li>第一志愿：{{topic.firststudents===undefined?0:topic.firststudents.length}}</li>
                     <li>第二志愿：{{topic.secondstudents===undefined?0:topic.secondstudents.length}}</li>
                     <li>第三志愿：{{topic.thirdstudents===undefined?0:topic.thirdstudents.length}}</li>
                   </ul>
-                </md-tooltip>
+                </wyvonj-tooltip>
               </td>
             </tr>
-        </transition-group>
-      </table>
+            </transition-group>
+        </table>
+      </div>
+      <div class="table-footer">
+        <mu-pagination :total="totalPage" :current="currentPage" @pageChange="handlePageChange">
+        </mu-pagination>
+      </div>
     </div>
-    <div class="topics-cart" :class="{'show-cart':_stu_TopicInCart[0]}">
+    <div class="cart-toggle no-selection" @click="isCartDisplay=!isCartDisplay">
+      <img src="../../assets/icon/assignment_w.svg" alt="cart" />
+    </div>
+    <div class="topics-cart" :class="{'show-cart':isCartDisplay}">
+    <mu-icon-button class="close-cart-button" icon="clear" @click="isCartDisplay=false" />
       <div class="chosen-topics-title">
         已选课题
       </div>
-      <div class="choice-cart">
+      <div class="choice-cart scrollbar">
         <div class="topic-level">
           <transition-group tag="ul" name="slide-fade">
-            <li class="selected-item" v-for="(topic,index) in _stu_TopicInCart" v-dragging="{ item: topic, list: _stu_TopicInCart, group: 'topic' }" :key="topic._id" :class="{'show-details':isDetails[index]}">
+            <li class="selected-item" v-for="(topic,index) in topicsInCart" v-dragging="{ item: topic, list: topicsInCart, group: 'topic'}" :key="topic._id" :class="{'show-details':isDetails[index]}">
               <mu-avatar :size="20" :backgroundColor="selectedBgc[index]">
                 {{index+1}}
               </mu-avatar>
               <mu-icon class="arrow-button" :class="{'show-details':isDetails[index]}" value="keyboard_arrow_right" @click="toggleDetails(index)" />
               <div class="selected-item-content">
                 <span class="title">{{topic._id}}.{{topic.title}}</span>
-                <p class="details" v-if="isDetails[index]">{{topic.details}}</p>
+                <p class="details" v-if="isDetails[index]">
+                {{topic.details}}
+                </p>
               </div>
-              <mu-icon-button class="delete-button" icon="clear" @click="deleteTopic(index)" />
+              <mu-icon-button class="delete-button" icon="delete_forever" @click="deleteTopic(index)" />
             </li>
           </transition-group>
         </div>
-        <button class="blue submit-button" @click="commitSelectedTopics">
+        <button class="blue submit-button" :disabled="!topicsInCart[0]" @click="commitSelectedTopics">
           <img src="../../assets/icon/check_circle.svg" alt="check" />
           <span>提交</span>
         </button>
@@ -80,29 +98,33 @@
 
 
 <script>
-import { mapState, mapActions ,mapMutations } from 'vuex'
+import { mapState, mapActions, mapMutations } from 'vuex'
 export default {
   data() {
       return {
-        fixedHeader: true,
-        selectable: false,
-        showCheckbox: false,
+        isCartDisplay: false,
         isCategorySorted: false,
-        lastSelection: 0,
-        isDetails: [false, false, false],
-        selectedBgc: ["red500", "lightBlueA700", "teal500"],
-        searchStr: ''
+        lastSelection: 0,//上次选择 
+        isDetails: [false, false, false],//是否展示购物车中课题详情
+        selectedBgc: ["red500", "lightBlueA700", "teal500"],//选择课题的背景表示颜色
+        searchStr: '', //搜索的字符串
+        totalPage:100,//页码总数 作为分页参考
+        currentPage:1,//当前页
+        topicsInCart: [],//在购物车中的课题
+        step: ''  //系统进度
       }
     },
     computed: {
-      ...mapState(['_stu_TopicInTable','_stu_TopicInCart'])
+      ...mapState(['_stu_TopicInTable', '_stu_TopicInCart'])
     },
     methods: {
-      /*handlePage(newIndex) {
-        this.topicsInDisplay = []
-        this.topicsInDisplay = this.topicsChunk[newIndex - 1]
-        this.currentPage = newIndex
-      },*/
+      handlePageChange(newPage){
+        this.currentPage = newPage
+        let body = this.$refs.tableBody
+        let ch = body.clientHeight
+        let anchor = (body.scrollHeight - body.clientHeight)/10
+        body.scrollTop = newPage * anchor
+      },
       sortCategory() {
         this.isCategorySorted = !this.isCategorySorted
       },
@@ -110,7 +132,11 @@ export default {
         let reg = new RegExp(this.searchStr, 'i')
           //let isNum = this.searchStr.search(/^[0-9]*[1-9][0-9]*$/)
         return topics.filter((topics) => {
-          return (topics.title.match(reg) || topics._id.toString().match(reg))
+          if ((topics.title.match(reg) || topics._id.toString().match(reg))) {
+            return true
+          } else {
+
+          }
         })
       },
       refreshTopics() {
@@ -123,141 +149,226 @@ export default {
         return t1 + t2 + t3
       },
       addTopic(index, topic) {
-        let cart = this._stu_TopicInCart
+        //根据进度选择能选几个题目
+        if(this.step === 'selecttopics'){
+        let cart = this.topicsInCart
         if (topic._id !== this.lastSelection) {
           this.toggleTableBar = false
           switch (cart.length) {
             case 0:
-              {
-                this.STU_SELECT_TOPIC(topic)
-                this.showSnackbar("请在已选课题中编辑或提交选择。")
-                break
-              }
+              this.isCartDisplay = true
+              this.topicsInCart.push(topic)
+              this.showSnackbar("请在已选课题中编辑或提交选择。")
+              break
             case 1:
-              {
-                if (topic._id !== cart[0]._id) {
-                  this.STU_SELECT_TOPIC(topic)
-                } else {
-                  this.showSnackbar("不能选择相同志愿，请在已选课题中编辑！")
-                }
-                break
-              }
+              if (topic._id !== cart[0]._id) {
+                this.topicsInCart.push(topic)
+                this.isCartDisplay = true
+              } else
+                this.showSnackbar("不能选择相同志愿，请在已选课题中编辑！")
+              break
             case 2:
-              {
-                if (topic._id !== cart[0]._id && topic._id !== cart[1]._id) {
-                  this.STU_SELECT_TOPIC(topic)
-                  this.showSnackbar("已经选满三个志愿，请在已选课题面板中编辑或提交。")
-                } else {
-                  this.showSnackbar("不能选择相同志愿！不能选择相同志愿！不能选择相同志愿！")
-                }
-                break
-              }
-            case 3:
-                this.showSnackbar("只能选取三个志愿，请在已选课题中编辑。")
-          }
-        } else {
-          this.lastSelection = topic._id
-        }
+              if (topic._id !== cart[0]._id && topic._id !== cart[1]._id) {
+                this.isCartDisplay = true
 
+                this.topicsInCart.push(topic)
+                this.showSnackbar("已经选满三个志愿，请在已选课题面板中编辑或提交。")
+              } else
+                this.showSnackbar("不能选择相同志愿！不能选择相同志愿！不能选择相同志愿！")
+              break
+            case 3:
+              this.isCartDisplay = true
+              this.showSnackbar("只能选取三个志愿，请在已选课题中编辑。")
+          }
+        } else
+          this.lastSelection = topic._id
+        }else if(this.step === 'reselecttopics'){
+          this.isCartDisplay = true
+          if (this.topicsInCart.length===0)
+            this.topicsInCart.push(topic)
+          else
+            this.showSnackbar("只能选择最终志愿，请与导师确认后提交")
+        }else{
+          this.showSnackbar("现在是非选题时间。")
+        }
+        
       },
       //提交选题按钮
       commitSelectedTopics() {
-        //if (this._stu_TopicInCart.length === 0) return
-        /* if (!this.$root.getCookie('user')){
-           alert('超时未操作，请重新登录')
-           this.$router.push('/')
-         }*/
-        let _stu_TopicInCartWrapper = {
+        if (this.step==='reselecttopics') {
+          this.POST('/student/stuFinalTopic',{
+            _id: _c.getCookie('user'),
+            final: this.topicsInCart[0]._id,
+          })
+          .then((state)=>{
+            console.log(state)
+              this.showSnackbar('选题成功')
+              this.$router.push('/student/status')
+          })
+        }else{
+          let _stu_TopicInCartWrapper = {
           _id: _c.getCookie('user'),
-          first: this._stu_TopicInCart[0]._id,
-          second: this._stu_TopicInCart[1] === undefined ? -1 : this._stu_TopicInCart[1]._id,
-          third: this._stu_TopicInCart[2] === undefined ? -1 : this._stu_TopicInCart[2]._id
+          first: this.topicsInCart[0]._id,
+          second: this.topicsInCart[1] === undefined ? -1 : this.topicsInCart[1]._id,
+          third: this.topicsInCart[2] === undefined ? -1 : this.topicsInCart[2]._id
         }
+        //提交选题是否成功
         this.stuCommitSelection(_stu_TopicInCartWrapper)
+          .then((state)=>{
+            console.log(state)
+              this.showSnackbar('选题成功')
+              this.$router.push('/student/status')
+          })
+        }
+        
       },
       toggleDetails(index) {
+        //设置对应的详情是否展示
         this.$set(this.isDetails, index, !this.isDetails[index])
       },
       deleteTopic(index) {
         //删除本条选题
-        this.STU_DELTED_TOPIC(index)
+        this.topicsInCart.splice(index, 1)
+        //课题显示为零的话收回购物车显示
+        if (this.topicsInCart.length === 0) {
+          this.isCartDisplay = false
+        }
       },
-      ...mapActions(['stuGetTopics', 'showSnackbar', 'stuCommitSelection','stuSelectionResult']),
-      ...mapMutations(['STU_SELECT_TOPIC','STU_DELTED_TOPIC'])
+      ...mapActions(['stuGetTopics', 'showSnackbar', 'stuCommitSelection', 'stuSelectionResult'])
     },
     beforeDestroy() {
       //切换路由时如果还没保存 就弹出提示
-      //this._stu_TopicInCart = []
+      if (this.topicsInCart == this._stu_TopicInCart) {
+        console.log(0)
+      }
     },
     mounted() {
       let id = _c.getCookie('user')
-      this.stuGetTopics()
-      this.stuSelectionResult({studentId:id})
-
-        //this.stuGetTopics().then(()=>{
-        /*  this.total=this._stu_TopicInTable.length
-          this.topicsChunk = _.chunk(this._stu_TopicInTable, this.pageSize)
-          this.topicsInDisplay = this.topicsChunk[0]
-        //)
-        if (this.topicsInDisplay.length>0) {
-          this.topicsInDisplay = _.sortBy(this.topicsInDisplay,(o)=>{
-          return o._id
+       this.GET('/getstep')
+        .then(res=>{
+          this.step = res.data.curstep
         })
-        }*/
+      this.stuGetTopics() //获取学生课题
+
+      this.stuSelectionResult({ studentId: id })//获取学生选题结果
+        .then(()=>{
+          //将选题结果放入Cart中
+          this.topicsInCart = Object.assign([], this._stu_TopicInCart)
+            if (this.topicsInCart.length > 0) {
+              this.isCartDisplay = true //有已选课题则展示
+            }
+        })
     }
 }
 
 </script>
 <style lang="sass" rel="stylesheet/scss" scoped>
 @import '../../style/variables.scss';
+
+.search-bar-wrapper
+{
+    position: relative;
+    top: 8px;
+
+    width: 40%;
+    height: 48px;
+    margin-bottom: 16px;
+    padding-left: 48px;
+
+    cursor: text;
+    white-space: nowrap;
+
+    border-radius: 3px;
+    background-color: transparent;
+    .search-icon
+    {
+        position: absolute;
+        top: 0;
+        left: 0;
+
+        margin: 12px;
+    }
+    .search-input
+    {
+        font-size: 20px;
+
+        position: relative;
+        top: 8px;
+
+        width: 100%;
+        height: 32px;
+
+        transition: $material-enter;
+
+        border: 0;
+        border-bottom: 2px #9f9f9f solid;
+        outline: none;
+        background-color: transparent;
+        &:focus
+        {
+            border-bottom-color: $red;
+        }
+        @media (max-width:993px)
+        {
+            display: none;
+        }
+    }
+}
+input::-webkit-input-placeholder
+{
+    font-variant: small-caps;
+}
+input::-moz-input-placeholder
+{
+    font-variant: small-caps;
+}
+input::-ms-input-placeholder
+{
+    font-variant: small-caps;
+}
+input::-o-input-placeholder
+{
+    font-variant: small-caps;
+}
 .table-container
 {
-    display: inline-block;
 
     width: 100%;
 
     transition: $material-enter;
-
-    -webkit-box-shadow: $material-shadow-2dp;
-       -moz-box-shadow: $material-shadow-2dp;
-            box-shadow: $material-shadow-2dp;
-    &.show-cart
-    {
-        width: calc(100% - 256px);
-        @media (max-width: 993px)
-        {
-          width: 100%;
-        }
-
-    }
     caption
     {
+        position: relative;
+
+        height: 36px;
+
         border-top-left-radius: 3px;
         border-top-right-radius: 3px;
-        position: relative;
-        height: 36px;
         span.table-title
         {
-          position: absolute;
-          left: 16px;
-          top:8px;
             font-weight: lighter;
+
+            float: left;
+
+            margin: 8px;
         }
         .mu-icon-button
         {
-          position: absolute;
-          right: 64px;
+            position: absolute;
+            right: 0;
+
             width: 36px;
             height: 36px;
             padding: 0;
         }
     }
-
     .selected-restriction
     {
         padding: 4px;
-        transition: $material-enter;
+
         cursor: default;
+        transition: $material-enter;
+
         color: $greenVue;
         border: 1px $greenVue solid;
         border-radius: 2px;
@@ -267,37 +378,54 @@ export default {
         color: $red;
         border-color: $red;
     }
-    table
+    .topic-table-wrapper{
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: scroll;
+      height: calc(100vh - 296px);
+      max-height: calc(100vh - 296px);
+      width: 100%;
+      -webkit-box-direction: normal;
+      -webkit-tap-highlight-color: transparent;
+    }
+    table.topic-table
     {
+
         td:first-child
         {
             padding-right: 32px;
             padding-left: 16px;
         }
+        td:nth-child(3)
+        {
+            font-weight: 400;
+        }
         td:nth-child(4)
         {
             cursor: help;
             white-space: normal;
+            font-weight: 400;
         }
         td
         {
-          height: 40px;
             font-size: 14px;
-            padding: 2px 0;
-        .add-topic-button
-        {
-          width: 32px;
-            height: 32px;
-            cursor: pointer;
-            margin-left: 12px;
-    transition: $material-enter;
 
-          &:hover{
-            color: $red;
-          }
-            
-            
-        }
+            height: 40px;
+            padding: 2px 0;
+            .add-topic-button
+            {
+                width: 32px;
+                height: 32px;
+                margin-left: 12px;
+                display: inline-block;
+
+                cursor: pointer;
+                transition: $material-enter;
+                &:hover
+                {
+                    color: $red;
+                }
+            }
         }
         .category-sort
         {
@@ -306,30 +434,65 @@ export default {
         tr:hover
         {
             background-color: #dedede;
-
-            .selected-restriction{
-              background-color: $greenVue;
-              color: #fff;
+            .selected-restriction
+            {
+                color: #fff;
+                background-color: $greenVue;
             }
-            .selected-all{
-              background-color: $red;
-              color: #fff;
+            .selected-all
+            {
+                color: #fff;
+                background-color: $red;
             }
         }
+    }
+    .table-footer{
+      width: 100%;
+      height: 44px;
+          display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+}
+.cart-toggle
+{
+    position: fixed;
+    right: 32px;
+    bottom: 32px;
+
+    width: 64px;
+    height: 64px;
+
+    cursor: pointer;
+    transition: $material-enter;
+
+    border-radius: 32px;
+    background-color: $red;
+    box-shadow: 0 2px 8px 2px rgba(76, 76, 76, .32);
+    &:hover
+    {
+        background-color: $red400;
+        box-shadow: 0 3px 9px 2px rgba(76, 76, 76, .36);
+    }
+    img
+    {
+        position: relative;
+        top: 16px;
+        left: 16px;
+
+        width: 32px;
+        height: 32px;
     }
 }
 .topics-cart
 {
     position: absolute;
-    top: 0;
     right: -270px;
-
+    bottom: 112px;    
     overflow: hidden;
 
     width: 256px;
-    height: 100%;
-    padding-top: 72px;
-
+    padding-bottom: 16px;
     transition: $material-enter;
 
     background-color: white;
@@ -340,17 +503,26 @@ export default {
     {
         right: 0;
     }
+    .close-cart-button{
+      position: absolute;
+      right: 0;
+      top: -6px;
+      color: white;
+      &:hover{
+        color: $red;
+      }
+    }
     .chosen-topics-title
     {
-        font-size: 16px;
-
-        width: 84px;
-        margin: 16px auto;
+        font-size: 20px;
+        width: 100%;
         padding: 8px;
-
-        color: $indigo;
-        border: 1px solid $indigo;
-        border-radius: 3px;
+        color: #f1f1f1;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+        background: $indigo;
+        text-align: center;
+        font-weight: 400;
     }
     .dragging
     {
@@ -364,142 +536,141 @@ export default {
     margin-top: 12px;
 
     transition: $material-enter;
-        .selected-item
+    max-height: 480px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    text-align: center;
+    .selected-item
+    {
+        position: relative;
+
+        width: 240px;
+        min-height: 80px;
+        margin: 8px auto;
+
+        cursor: move;
+        transition: $material-enter;
+
+        border: 1px #dedede solid;
+        border-radius: 3px;
+        &.show-details
         {
-            position: relative;
+            min-height: 256px;
+        }
+        &:hover
+        {
+            background-color: #efefef;
+        }
+        .mu-avatar
+        {
+            font-family: $fontSansSerif;
 
-            width: 240px;
-            min-height: 80px;
-            margin: 8px auto;
+            position: absolute;
+            z-index: 100;
+            top: 6px;
+            left: 6px;
 
-            cursor: move;
+            cursor: default;
+        }
+        .arrow-button
+        {
+            position: absolute;
+            top: 48px;
+            left: 5px;
+
+            cursor: pointer;
             transition: $material-enter;
-
-            border: 1px #dedede solid;
-            border-radius: 3px;
             &.show-details
             {
-                min-height: 256px;
-            }
-            &:hover
-            {
-                background-color: #efefef;
-            }
-            .mu-avatar
-            {
-                font-family: $fontSansSerif;
-
-                position: absolute;
-                z-index: 100;
-                top: 6px;
-                left: 6px;
-
-                cursor: default;
-            }
-            .arrow-button
-            {
-                position: absolute;
-                top: 48px;
-                left: 5px;
-
-                cursor: pointer;
-                transition: $material-enter;
-                &.show-details
-                {
-                    transform: rotateZ(90deg);
-                }
-            }
-            .delete-button
-            {
-                position: absolute;
-                right: 0;
-                bottom: 0;
-
-                width: 36px;
-                height: 36px;
-                padding: 0;
-
-                color: $red;
-            }
-            .selected-item-content
-            {
-                position: absolute;
-                top: 10px;
-                left: 32px;
-
-                width: 200px;
-                .title
-                {
-                    font-size: 14px;
-
-                    display: inline-block;
-                }
-                p.details
-                {
-                    font-size: 13px;
-
-                    margin-top: 12px;
-                }
+                transform: rotateZ(90deg);
             }
         }
+        .delete-button
+        {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+
+            width: 36px;
+            height: 36px;
+            padding: 0;
+
+            color: $red;
+        }
+        .selected-item-content
+        {
+            position: absolute;
+            top: 10px;
+            left: 32px;
+
+            width: 200px;
+            .title
+            {
+                font-size: 14px;
+
+                display: inline-block;
+            }
+            p.details
+            {
+                font-size: 13px;
+
+                margin-top: 12px;
+            }
+        }
+    }
     .submit-button
     {
-        margin: 0 auto;
-        width: 84px;
-        position: relative;
-       left: 84px;
+        width: 128px;
     }
 }
 
-.list-box{
-  width: 100%;
-  overflow-x: hidden!important;
-  overflow-y: scroll!important;
-  height: 100%;
-}
 
-.sort-category-icon{
-  
-}
+
 @media (max-width: 993px)
 {
-    .topics-cart{
-      right: -270px;
+    .topics-cart
+    {
+        right: -270px;
     }
 }
 
-.md-tooltip{
-  height: auto;
-    z-index: 248;
-    white-space: normal;
+.wyvonj-tooltip
+{
     font-family: $fontYahei;
     font-size: 14px;
+
+    z-index: 248;
+
+    height: auto;
+
+    white-space: normal;
+
     color: #000;
     border-radius: 2px;
     background-color: #fff;
-
     -webkit-box-shadow: $material-shadow-3dp;
        -moz-box-shadow: $material-shadow-3dp;
             box-shadow: $material-shadow-3dp;
 }
 
-.md-tooltip.selected-tooltip
+.wyvonj-tooltip.selected-tooltip
 {
-    padding: 8px;
     width: 100px;
+    padding: 8px;
 }
-.md-tooltip.details-tooltip
+.wyvonj-tooltip.details-tooltip
 {
     width: 480px;
     padding: 0;
     .details-appbar
     {
+        font-variant: small-caps;
         line-height: 16px;
 
         width: 100%;
         height: 24px;
         padding: 4px 8px;
-        font-variant: small-caps;
+
         color: #fff;
         border-top-left-radius: 2px;
         border-top-right-radius: 2px;
@@ -531,12 +702,17 @@ export default {
     transition: $material-enter;
 }
 
-.list-enter-active, .list-leave-active {
-  transition: $material-enter;
+.list-enter-active,
+.list-leave-active
+{
+    transition: all .4s cubic-bezier(0, .68, 0, 1.04);
 }
-.list-enter, .list-leave-active {
-  opacity: 0;
-  transform: translateZ(30px);
+.list-enter,
+.list-leave-active
+{
+    transform: translateX(30px);
+
+    opacity: 0;
 }
 
 </style>

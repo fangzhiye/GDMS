@@ -68,7 +68,7 @@
             <span class="class-right">艺术{{100-classratio}}%</span>
           </div>
           <div class="fields">
-            <mu-select-field v-model="fields" multiple :labelFocusClass="['label-foucs']" :errorText="fieldsError" label="您的研究领域" @change="changeFields" labelFloat>
+            <mu-select-field v-model="fields" multiple :labelFocusClass="['label-focus']" :errorText="fieldsError" label="您的研究领域" @change="changeFields" labelFloat>
               <mu-sub-header>可多选</mu-sub-header>
               <mu-menu-item v-for="text,index in fieldsData" :value="text" :title="text" />
             </mu-select-field>
@@ -208,7 +208,7 @@ export default {
       },
       handleFinish() {
         this.account = _c.getCookie('user')
-        if (!this.usertype) {
+        if (this.usertype===0) {
           this.stuSetContactData({
               account: this.account,
               tel: this.tel,
@@ -246,7 +246,7 @@ export default {
     },
     mounted() {
       try {
-        this.usertype = _c.getCookie('usertype')
+        this.usertype = _.parseInt(_c.getCookie('usertype'))
       } catch (err) {
         return console.log(err)
       }
@@ -323,12 +323,9 @@ span.title
         margin-bottom: 0;
     }
 }
-.fields
+.fields .mu-text-field
 {
-    .mu-text-field
-    {
         width: 320px !important;
-    }
 }
 
 </style>

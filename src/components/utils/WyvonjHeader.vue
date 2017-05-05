@@ -1,25 +1,26 @@
 <template>
-  <nav class="nav-bar" :style="bgColor">
-    <div class="logo">
+  <nav class="nav-bar shadow" :style="bgColor">
+    <div class="logo" @click="$router.push('/')">
       <img src="../../assets/img/gd_logo.png" alt="GDMS">
       <p class="jnudm">Jnudm</p>
     </div>
-    <mu-icon-button icon="menu" @click="toggleNav"></mu-icon-button>
-    <transition name="search-transition">
-      <div class="search-bar-wrapper" v-show="showSearchInput" >
-      <mu-icon class="search-icon" value="search"/>
-      <input type="text" @focus="focus" :class="{'focused':searchFocus}" @blur="blur" @keyup.enter="search" v-model.trim="str" placeholder="Search" class="search-input" name="search">
-    </div>
-    </transition>
+    <span class="menu" @click="toggleNav">
+      <img src="../../assets/icon/menu.svg" alt="menu" />
+    </span>
+    <span class="account">
+      <img src="../../assets/icon/account_c.svg" alt="account" />
+      <span>{{username}}</span>
+    </span>
     <div class="notification-info">
-      <mu-icon-button tooltip="通知" class="notify-button" ref="notify" icon="notifications" @click="showNotification" />
-      <mu-icon-button tooltip="注销" class="logout-button" ref="button" icon="exit_to_app" @click="logout" />
-      </mu-badge>
-      <mu-popover :trigger="trigger" :open="openNotification" @close="handleClose">
+      <mu-icon-button tooltip="通知" class="notify-button" ref="notify"  @click="isOpen = !isOpen" >
+      <img src="../../assets/icon/notifications.svg" alt="notification" />
+      </mu-icon-button>
+      <mu-icon-button tooltip="注销" class="logout-button" ref="button" @click="logout">
+      <img src="../../assets/icon/exit.svg" alt="exit" />
+
+      </mu-icon-button>
+      <mu-popover :trigger="trigger" :open="isOpen" @close="isOpen = false">
         <mu-card>
-          <mu-card-header :title="username">
-            <mu-avatar icon="assignment_turned_in" />
-          </mu-card-header>
           <mu-card-text>
             {{notification}}
           </mu-card-text>
@@ -29,82 +30,54 @@
   </nav>
 </template>
 
-
 <script>
-
-import { mapState ,mapMutations} from 'vuex'
-//import {unsetCookie} from '../../utils/cookieUtil'
+import { mapState, mapMutations } from 'vuex'
 export default {
   props: {
-    showSearchInput: {
-      type: Boolean,
-      default: false
-    } ,
-    username:{
-      type:String,
-      default:''
+    username: {
+      type: String,
+      default: ''
     },
-    notification:{
-      type:String,
-      default:'没有什么新消息。'
+    notification: {
+      type: String,
+      default: '没有什么新消息。'
     }
 
   },
   data() {
     return {
-      openNotification: false,
+      isOpen: false,
       trigger: null,
-      searchFocus:false,
-      str:'',
     }
   },
   methods: {
-    showNotification() {
-      this.openNotification = !this.openNotification
-    },
-    handleClose(e) {
-      this.openNotification = false
-    },
-    focus(){
-      this.searchFocus=true
-    },
-    blur(){
-      this.searchFocus=false
-    },
-    search(){
-      this.$emit('search',this.str)
-    },
     toggleNav() {
       this.$parent.toggleNav()
     },
     //登出
-    logout(){
-      _c.unsetCookie('user','/',window.location.hostname)
-      this.SET_USER({account:'',password:''})
+    logout() {
+      _c.unsetCookie('user', '/', window.location.hostname)
+      this.SET_USER({ account: '' })
       this.RESET_STATE()
-      this.$router.push('/')//返回登录界面
+      this.$router.push('/') //返回登录界面
     },
-    ...mapMutations(['SET_USER','RESET_STATE'])
+    ...mapMutations(['SET_USER', 'RESET_STATE'])
   },
-  computed:{
-    bgColor(){
-      let type=window.location.pathname.match(/^\/[a-z]{1}/)[0]
-      type=type.substring(1)
-      switch(type){
+  computed: {
+    bgColor() {
+      let type = window.location.pathname.match(/^\/[a-z]{1}/)[0]
+      type = type.substring(1)
+      switch (type) {
         case 's':
-          return {backgroundColor:'#3f51b5'}
+          return { backgroundColor: '#3f51b5' }
           break
         case 't':
-          return {backgroundColor:'#009688'}
+          return { backgroundColor: '#009688' }
           break
         case 'a':
-          return {backgroundColor:'#f44336'}
+          return { backgroundColor: '#03a9f4' }
       }
     },
-    ...mapState(['user'])
-  },
-  watch:{
-    str:'search'
   },
   mounted() {
     this.trigger = this.$refs.notify.$el
@@ -129,14 +102,28 @@ export default {
     transition: $material-enter;
 
     color: white;
-    > .mu-icon-button
+    .menu
     {
         position: absolute;
-        top: 8px;
-        left: 188px;
+        top: 22px;
+        left: 196px;
+
+        cursor: pointer;
+        transition: $material-enter;
+
         @media (max-width: 993px)
         {
-            left: 8px;
+            left: 16px;
+        }
+    }
+    .account{
+        position: absolute;
+        top: 22px;
+        right: 106px;
+        height: 24px;
+        display: flex;
+        span{
+          padding-left: 6px;
         }
     }
     .notify-button
@@ -150,70 +137,6 @@ export default {
         position: absolute;
         top: 8px;
         right: -80px;
-    }
-    .search-bar-wrapper
-    {
-        position: absolute;
-        top: 8px;
-        left: 256px;
-
-        width: 40%;
-        height: 48px;
-        padding-left: 48px;
-
-        cursor: text;
-        transition: $material-enter;
-        white-space: nowrap;
-        border: 1px white solid;
-        border-radius: 3px;
-        background-color: transparent;
-        .search-icon
-        {
-            position: absolute;
-            top: 0;
-            left: 0;
-
-            margin: 12px;
-        }
-        .search-input
-        {
-            font-size: 20px;
-
-            position: relative;
-            top: 8px;
-
-            width: 100%;
-            height: 32px;
-
-            color: #fff;
-            border: 0;
-            outline: none;
-            background-color: transparent;
-            &.focused
-            {
-                width: 120%;
-            }
-        }
-        @media (max-width:993px)
-        {
-            display: none;
-        }
-    }
-    input::-webkit-input-placeholder
-    {
-        font-variant: small-caps;
-    }
-    input::-moz-input-placeholder
-    {
-        font-variant: small-caps;
-    }
-    input::-ms-input-placeholder
-    {
-        font-variant: small-caps;
-    }
-    input::-o-input-placeholder
-    {
-        font-variant: small-caps;
     }
     .notification-info
     {
@@ -235,29 +158,9 @@ export default {
     {
         .logo
         {
-            display: none;
+            display: inline-block;
         }
     }
-}
-
-.search-transition-enter-active
-{
-    transition: $material-enter;
-    transition-delay: .3s !important;
-}
-
-.search-transition-enter
-{
-    transform: translateX(-40px);
-
-    opacity: 0;
-}
-
-.search-transition-leave-active
-{
-    transform: translateX(40px);
-
-    opacity: 0;
 }
 
 </style>

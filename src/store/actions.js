@@ -32,6 +32,7 @@ export default {
   showSnackbar,
   progressbarStart,
   progressbarStop,
+  //登录路由
   login: ({ commit }, payload) => {
     return axios.post('/login', payload)
       .then((response) => {
@@ -81,15 +82,14 @@ export default {
   stuSelectionResult: ({ commit }, payload) => {
     return axios.post('/student/stuSelectionResult', payload)
       .then(response => {
-        if (response.data.state===1) {
+        if (response.data.state === 1) {
           commit('STU_FINAL_TOPIC', response.data)
-        }else{
-          let wrapper=[]
+        } else {
+          let wrapper = []
           for (let i = 0; i < response.data.topics.length; i++) {
-            if(response.data.topics[i])
+            if (response.data.topics[i])
               wrapper.push(response.data.topics[i])
           }
-          console.log(wrapper)
           commit('STU_TOPIC_IN_CART', wrapper)
         }
       })
@@ -177,7 +177,14 @@ export default {
       })
   },
   tchContactInfo: ({ commit }, payload) => {
-    return axios.post('/teacher/tchContactInfo', payload)
+    return axios.get('/teacher/tchContactInfo', payload)
+      .then(response => {
+        if (response.data === 0) {
+          return Promise.reject('no')
+        } else {
+          return Promise.reject('yes')
+        }
+      })
       .catch(err => {
         showSnackbar({ commit }, '出了点小问题，再试试')
         return Promise.reject(err)
@@ -197,7 +204,6 @@ export default {
   tchGetCreatedTopics: ({ commit }, payload) => {
     return axios.post('/teacher/tchGetCreatedTopics', payload)
       .then(response => {
-        console.log(response)
         commit('TCH_TOPIC_CREATED_ALL', response.data)
       })
   },
@@ -206,10 +212,10 @@ export default {
     return axios.post('/teacher/tchDeleteTopic', payload)
       .then(response => {
         console.log(response)
+        showSnackbar({ commit }, "课题已删除")
       })
-      .catch((err) => {
-        showSnackbar({ commit }, '出了点问题，再试试')
-        return Promise.reject(err)
+      .catch(err => {
+        console.log('课题删除出错' + err)
       })
   },
   //确认学生选题
@@ -243,6 +249,16 @@ export default {
         commit('STU_TCH_GROUPING', response.data)
       })
       .catch(err => {
+        return Promise.reject(err)
+      })
+  },
+  tchAccountInfo: ({ commit }, payload) => {
+    return axios.post('/teacher/tchAccountInfo', payload)
+      .then(response => {
+        //0 
+      })
+      .catch((err) => {
+        showSnackbar({ commit }, '出了点小问题，再试试')
         return Promise.reject(err)
       })
   }

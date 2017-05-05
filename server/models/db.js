@@ -4,6 +4,8 @@ var students = require('./students').students
 var mentors = require('./mentors').mentors
 var groups = require('./groups').groups
 var admins = require('./admins').admins
+var step = require('./step').step
+var autoIncModel = require('./autoIncModel').autoIncModel
 var xlsx = require('node-xlsx')//读取excel文件
 var fs = require('fs')//读取文件内容
 var  topicsinitialdata = require('../initialdata/topicsinitialdata.json')//初始的课题信息
@@ -13,6 +15,9 @@ exports.students = students
 exports.mentors = mentors
 exports.groups = groups
 exports.admins = admins
+exports.step = step
+exports.autoIncModel = autoIncModel
+//exports.connection = mongoose.connection
 /*初始化students数据*/
 var ImportStudentsData=function(FilePath){
 	var excelData = xlsx.parse(FilePath)
@@ -24,12 +29,13 @@ var ImportStudentsData=function(FilePath){
 			console.log('开始导入学生初始数据')
 			Promise.all(studentsData.map(student=>{
 				new students({
-					_id: 	 student[0],//一个数组 0 1 2 3就分别是学号 姓名 密码 性别
+					_id: 	 student[0],
+					//一个数组 0 1 2 3就分别是学号 姓名 密码 性别
 					name: 	 student[1],
 					password:student[2],
 					gender:  student[3],
 					gpa:     student[4],
-					intro:   student[5]
+				//	intro:   student[5]
 				}).save()
 			})).then(console.log('导入学生初始数据完毕'))
 		}else{
@@ -47,7 +53,7 @@ var ImportMentorsData=function(FilePath){
 	var excelData = xlsx.parse(FilePath)
 	var sheetNum = excelData.length //读取excel中sheet个数
 	Promise.all(excelData.map(sheet=>{
-			if(sheet.name == '导师'||sheet.name == 'sheet1'){
+			if(sheet.name == '导师'||sheet.name == 'Sheet1'){
 			var mentorsData = sheet.data
 			mentorsData.shift() //删除excel数组的第一行元素，就是'姓名 学号'
 			console.log('开始导入导师初始数据')
@@ -56,9 +62,9 @@ var ImportMentorsData=function(FilePath){
 					_id: 	  mentor[0],//账号
 					name: 	  mentor[1],//姓名
 					password: mentor[2],//密码
-					fields:   mentor[4],//研究邻域
+				//	fields:   mentor[4],//研究邻域
 					gender:   mentor[3],//性别
-					classrate:mentor[5] //技艺比
+				//	classrate:mentor[5] //技艺比
 				}).save()
 			})).then(console.log("导师初始数据导入完毕"))
 		}else{
@@ -122,8 +128,8 @@ var testSelectTopic = function(){
 
 
 //initialStudentsAndMentors('../initialdata/测试数据.xlsx')
-
-
+//ImportStudentsData('../initialdata/学生初始数据.xlsx')
+//ImportMentorsData('../initialdata/导师初始数据.xlsx')
 //initialTopics()
 //testSelectTopic()
 exports.ImportStudentsData = ImportStudentsData

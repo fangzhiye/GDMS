@@ -1,6 +1,6 @@
 <template>
   <div class="main-container">
-    <wyvonj-header :class="{'nav-hide': !openDrawer}" :showSearchInput="menuValue==='topics'" @search="search" :username="username" :notification="notification"></wyvonj-header>
+    <wyvonj-header :class="{'nav-hide': !openDrawer}" :username="username" :notification="notification"></wyvonj-header>
     <mu-drawer @close="handleDrawerClose" :open="openDrawer" :docked="docked" class="sidebar-drawer" :zDepth="1">
       <div class="console-panel">
         <div class="logo">
@@ -51,20 +51,11 @@ export default {
         docked: desktop,
         desktop: desktop,
         menuValue: 'topics',
-        username: 'UNKNOWN',
+        username: '',
         notification: '',
       }
     },
     methods: {
-      search(str) {
-        this.$children[2].searchStr = str
-      },
-      handleMenuChange(value) {
-        this.menuValue = value
-        this.$router.push('/student/' + value)
-        if (!isDesktop())
-          this.handleDrawerClose()
-      },
       changeNav() {
         const desktop = isDesktop()
         this.docked = desktop
@@ -75,6 +66,12 @@ export default {
         if (desktop && !this.desktop && !this.openDrawer)
           this.openDrawer = true
         this.desktop = desktop
+      },
+      handleMenuChange(value) {
+        this.menuValue = value
+        this.$router.push('/student/' + value)
+        if (!isDesktop())
+          this.handleDrawerClose()
       },
       handleDrawerClose() {
         this.openDrawer = !this.openDrawer

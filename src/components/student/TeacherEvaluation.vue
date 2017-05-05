@@ -1,22 +1,18 @@
 <template>
   <div class="evaluation-card">
-  <div class="teacher-wrapper">
-       <div class="teacher-info">
-      <mu-avatar :icon="emoji" :size="44" :iconSize="36" />
-      <div class="name">
-        {{name}}
+    <div class="teacher-wrapper paper">
+      <div class="teacher-info">
+        <span class="name">{{name}}</span>
+        <span class="grade">{{grade}}</span>
       </div>
-      <mu-avatar class="grade" backgroundColor="greenA700" :size="44" :iconSize="36">{{grade}}</mu-avatar>
-    </div>
-    <div class="grade-content">
-      <mu-slider v-model="grade" :step="1" @change="faceChange" class="grade-slider" />
-      <button @click="commitGrade" class="grade-button">
+      <div class="grade-content">
+        <mu-slider v-model="grade" :step="1" class="grade-slider" />
+        <button @click="commitGrade" class="red" disabled="isOpenForEva">
           <i class="material-icons star-icon">star</i>
-          提交分数
-      </button>
+          <span>提交分数</span>
+        </button>
+      </div>
     </div>
-  </div>
-   
   </div>
 </template>
 
@@ -27,27 +23,17 @@ import {mapActions} from 'vuex'
 		data(){
 			return {
 				grade:60,
-				emoji:'sentiment_neutral',
-				name:'导师'
+				name:'导师',
+        isOpenForEva:false
 			}
 		},
 		methods:{
-			faceChange(value){
-				if (value<=40) {
-					this.emoji='sentiment_very_dissatisfied'
-				}else if(value>40 && value<60){
-					this.emoji='sentiment_dissatisfied'
-				}else if(value===60){
-					this.emoji='sentiment_neutral'
-				}else if(value>60 && value <=80){
-					this.emoji='sentiment_satisfied'
-				}else if(value>80){
-					this.emoji='sentiment_very_satisfied'
-				}
-			},
 			commitGrade(){
+        let id = _c.getCookie('user')
+        if (!id) 
+          return alert('登录超时，请重新登录后操作')
 				this.stuEvaluationToTch({
-					studentId:_c.getCookie('user'),
+					studentId:id,
 					grade:this.grade
 				})
 			},
@@ -61,7 +47,6 @@ import {mapActions} from 'vuex'
 .evaluation-card
 {
     .teacher-wrapper{
-        border: 1px $indigo400 solid;
         border-radius: 3px;
         width: 480px;
     }
@@ -69,53 +54,30 @@ import {mapActions} from 'vuex'
     {
         position: relative;
 
-        padding: 8px 16px;
-        width: 480px;
+        padding: 16px;
+        border-top: 16px solid $indigo; 
+        height: 32px;
         .name
         {
+            float: left;
             font-size: 24px;
-
-            position: relative;
-            bottom: 8px;
-            left: 18px;
-
-            display: inline-block;
         }
         .grade
         {
             font-size: 24px;
-
-            position: absolute;
-            right: 18px;
-            bottom: 8px;
+            float: right;
         }
     }
     .grade-content
-    {width: 480px;
+    {
         padding: 8px 16px;
         .grade-slider
         {
             margin-top: 16px;
         }
-        .grade-button{
-            outline: none;
-            background: transparent;
-            border: 1px #f44336 solid;
-            color: #f44336;
-            border-radius: 2px;
-            transition: $material-enter;
-            cursor: pointer;
-            padding: 0px 8px 8px 8px;
-            font-size: 16px;
-            vertical-align: text-top;
-            &:hover{
-                background-color: #f44336;
-                color: white;
-            }
-            .star-icon{
-                position: relative;
-                top: 4px;
-            }
+        .red span{
+            position: relative;
+            top: -4px;
         }
     }
 }
